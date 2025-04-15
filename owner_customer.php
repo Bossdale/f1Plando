@@ -121,6 +121,7 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
             margin: 20px auto; /* Center logo */
             display: block;
         }
+        /* shesh */
         .sidebar h4 {
             text-align: center;
             margin-bottom: 20px;
