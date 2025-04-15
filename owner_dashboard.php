@@ -67,7 +67,7 @@
       <a href="owner_dashboard.php">Dashboard</a>
       <a href="inventory_owner.php">Inventory</a>
       <a href="#">Products</a>
-      <a href="#">Customers</a>
+      <a href="customer.php">Customers</a>
       <a href="#">Orders</a>
       <a href="#">Debts</a>
       <a href="#">Suppliers</a>
