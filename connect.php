@@ -1,14 +1,16 @@
 <?php
-$connection = mysqli_connect(
-    "localhost", 
-    "root", 
-    "", 
-    "storestock", 
-    null, 
-    "/Applications/XAMPP/xamppfiles/var/mysql/mysql.sock"
-);
+$host = "localhost"; // Replace with your database host
+$username = "root"; // Replace with your database username
+$password = ""; // Replace with your database password
+$database = "storestock"; // Replace with your database name
 
-if (!$connection) {
-    die("Connection failed: " . mysqli_connect_error());
+$connection = new mysqli($host, $username, $password, $database);
+
+// Check connection
+if ($connection->connect_error) {
+    die("Connection failed: " . $connection->connect_error);
 }
+
+// Make $connection globally accessible
+global $connection;
 ?>
