@@ -64,15 +64,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 // Fetch customers for the current user along with their total debt
 $customers = [];
 $sql_customers = "SELECT
+    customerID,
     fullName,
     contactNumber,
     totalDebt
 FROM
     tblcustomer
 WHERE
-    ownerID = ?
-GROUP BY
-    fullName, contactNumber, totalDebt";
+    ownerID = ?";
 $stmt_customers = $connection->prepare($sql_customers);
 if ($stmt_customers) {
     $stmt_customers->bind_param("i", $currentUserID);
@@ -95,9 +94,9 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Add New Customer - STORESTOCK</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management - StoreStock</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <style>
         body {
@@ -105,26 +104,9 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
             background-color: #f8f9fa;
         }
         .sidebar {
-            height: 100vh; /* Make sidebar full height */
-            background-color: rgb(115, 32, 21);
+            height: 100vh;
+            background-color:rgb(115, 32, 21);
             color: white;
-            position: fixed; /* Fixed position to stay in view */
-            top: 0;
-            left: 0;
-            width: 300px; /* Inherit width from col-md-2 */
-        }
-        .sidebar .logo {
-            border-radius: 50%;
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
-            margin: 20px auto; /* Center logo */
-            display: block;
-        }
-        /* shesh */
-        .sidebar h4 {
-            text-align: center;
-            margin-bottom: 20px;
         }
         .sidebar a {
             color: white;
@@ -135,62 +117,15 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
         .sidebar a:hover {
             background-color: #af3222;
         }
-        .header-card {
-            background-color: #e39363;
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-        }
         .section-title {
             margin: 20px 0 10px;
             font-weight: bold;
         }
-        .filter-form {
-            margin-bottom: 50px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .form-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .error-message {
-            color: red;
-            font-size: 0.875rem;
-            margin-top: 5px;
-        }
-        .success-message {
-            color: green;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        .customer-list-container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-        .customer-list-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        .customer-list-table th, .customer-list-table td {
-            border: 1px solid #dee2e6;
-            padding: 8px;
-            text-align: left;
-        }
-        .customer-list-table th {
-            background-color: #f8f9fa;
+        .logo {
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -203,7 +138,7 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
             <a href="owner_dashboard.php">Dashboard</a>
             <a href="inventory_owner.php">Inventory</a>
             <a href="owner_product.php">Products</a>
-            <a href="owner_customer.php">Customers</a>
+            <a href="owner_customer.php" class="fw-bold">Customers</a>
             <a href="#">Orders</a>
             <a href="#">Debts</a>
             <a href="owner_supplier.php">Suppliers</a>
@@ -212,66 +147,71 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
             <a href="#">Logout</a>
         </div>
 
-        <div class="col-md-10 p-4 offset-md-2">
-            <div class="mb-3">
-                <h3>Add New Customer</h3>
-            </div>
+        <div class="col-md-10 p-4">
+            <h3 class="mb-4">Customer Management</h3>
 
-            <div class="form-container">
+            <div class="mb-5">
+                <h4>Add New Customer</h4>
                 <?php if ($add_customer_success): ?>
-                    <div class="success-message">Customer added successfully!</div>
+                    <div class="alert alert-success">Customer added successfully!</div>
                 <?php endif; ?>
                 <?php if (!empty($add_customer_error)): ?>
                     <div class="alert alert-danger"><?php echo htmlspecialchars($add_customer_error); ?></div>
                 <?php endif; ?>
                 <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
-                    <div class="form-group">
-                        <label for="fullName" class="form-label">Full Name:</label>
-                        <input type="text" class="form-control" id="fullName" name="fullName" value="<?php echo htmlspecialchars($fullName); ?>">
-                        <?php if (!empty($fullName_error)): ?>
-                            <div class="error-message"><?php echo htmlspecialchars($fullName_error); ?></div>
-                        <?php endif; ?>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="fullName" class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="fullName" name="fullName" value="<?php echo htmlspecialchars($fullName); ?>" required>
+                            <?php if (!empty($fullName_error)): ?>
+                                <div class="error-message"><?php echo htmlspecialchars($fullName_error); ?></div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="contactNumber" class="form-label">Contact Number</label>
+                            <input type="text" class="form-control" id="contactNumber" name="contactNumber" value="<?php echo htmlspecialchars($contactNumber); ?>" required>
+                            <?php if (!empty($contactNumber_error)): ?>
+                                <div class="error-message"><?php echo htmlspecialchars($contactNumber_error); ?></div>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="contactNumber" class="form-label">Contact Number:</label>
-                        <input type="text" class="form-control" id="contactNumber" name="contactNumber" value="<?php echo htmlspecialchars($contactNumber); ?>">
-                        <?php if (!empty($contactNumber_error)): ?>
-                            <div class="error-message"><?php echo htmlspecialchars($contactNumber_error); ?></div>
-                        <?php endif; ?>
+                    <div class="mt-3">
+                        <button type="submit" class="btn btn-success">➕ Add Customer</button>
                     </div>
-                    <button type="submit" class="btn btn-primary">Add Customer</button>
                 </form>
             </div>
 
-            <div class="customer-list-container">
-                <h6 class="section-title">Your Customers</h6>
-                <?php if (!empty($customers)): ?>
-                    <table class="customer-list-table">
-                        <thead>
+            <h4 class="mt-4">Customer List</h4>
+            <table class="table table-bordered table-striped">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Contact</th>
+                        <th>Total Debt</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($customers)): ?>
+                        <?php foreach ($customers as $customer): ?>
                             <tr>
-                                <th>Full Name</th>
-                                <th>Contact Number</th>
-                                <th>Total Debt</th>
+                                <td><?php echo htmlspecialchars($customer['fullName']); ?></td>
+                                <td><?php echo htmlspecialchars($customer['contactNumber']); ?></td>
+                                <td>₱<?php echo number_format($customer['totalDebt'], 2); ?></td>
+                                <td>
+                                    <a href="customer_edit.php?id=<?php echo $customer['customerID']; ?>" class="btn btn-sm btn-warning">✏️</a>
+                                    <a href="customer_delete.php?id=<?php echo $customer['customerID']; ?>" class="btn btn-sm btn-danger">🗑️</a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($customers as $customer): ?>
-                                <tr>
-                                    <td><?php echo htmlspecialchars($customer['fullName']); ?></td>
-                                    <td><?php echo htmlspecialchars($customer['contactNumber']); ?></td>
-                                    <td>₱<?php echo number_format($customer['totalDebt'], 2); ?></td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php else: ?>
-                    <p>No customers added yet.</p>
-                <?php endif; ?>
-            </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="4">No customers added yet.</td></tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
