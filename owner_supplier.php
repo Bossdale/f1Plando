@@ -64,15 +64,14 @@
       <a href="owner_dashboard.php">Dashboard</a>
       <a href="inventory_owner.php">Inventory</a>
       <a href="owner_product.php">Products</a>
-      <a href="#">Customers</a>
+      <a href="owner_customer.php">Customers</a>
       <a href="#">Orders</a>
       <a href="#">Debts</a>
-      <a href="owner_supplier.php" class="fw-bold">Suppliers</a>
+      <a href="owner_supplier.php">Suppliers</a>
       <a href="#">Reports</a>
       <a href="#">Settings</a>
       <a href="#">Logout</a>
     </div>
-
     <!-- Main Content -->
     <div class="col-md-10 p-4">
       <h3 class="mb-4">Suppliers</h3>
