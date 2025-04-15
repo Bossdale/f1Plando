@@ -66,11 +66,11 @@
       <h4 class="text-white">STORESTOCK</h4>
       <a href="owner_dashboard.php">Dashboard</a>
       <a href="inventory_owner.php">Inventory</a>
-      <a href="#">Products</a>
+      <a href="owner_product.php">Products</a>
       <a href="#">Customers</a>
       <a href="#">Orders</a>
       <a href="#">Debts</a>
-      <a href="#">Suppliers</a>
+      <a href="owner_supplier.php">Suppliers</a>
       <a href="#">Reports</a>
       <a href="#">Settings</a>
       <a href="#">Logout</a>
