@@ -50,6 +50,13 @@ function getDateCondition($fromDate, $toDate, $dateColumn = 'o.orderDate') {
     return $condition;
 }
 
+$query = "SELECT storeName FROM tblOwner";
+$result = mysqli_query($connection, $query);
+if ($result) {
+    $row = mysqli_fetch_assoc($result);
+    $storeName= $row['storeName'];
+}
+
 // Get total products for current owner
 $query = "SELECT COUNT(p.productID) as total
           FROM tblProduct p
