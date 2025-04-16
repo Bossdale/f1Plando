@@ -139,7 +139,7 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
             <a href="inventory_owner.php">Inventory</a>
             <a href="owner_product.php">Products</a>
             <a href="owner_customer.php" class="fw-bold">Customers</a>
-            <a href="#">Orders</a>
+            <a href="owner_order.php">Orders</a>
             <a href="#">Debts</a>
             <a href="owner_supplier.php">Suppliers</a>
             <a href="#">Reports</a>
