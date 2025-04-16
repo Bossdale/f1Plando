@@ -68,7 +68,7 @@
       <a href="owner_inventory.php">Inventory</a>
       <a href="owner_product.php">Products</a>
       <a href="owner_customer.php">Customers</a>
-      <a href="owner_orders.php">Orders</a>
+      <a href="owner_order.php">Orders</a>
       <a href="owner_supplier.php">Suppliers</a>
       <a href="owner_settings.php">Settings</a>
       <a href="logout.php">Logout</a>
