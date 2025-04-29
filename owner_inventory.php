@@ -67,15 +67,13 @@
       <img src="logo.png" alt="StoreStock Logo" class="logo">
       <h4 class="text-white">STORESTOCK</h4>
       <a href="owner_dashboard.php">Dashboard</a>
-      <a href="inventory_owner.php" class="fw-bold">Inventory</a>
+      <a href="owner_inventory.php" class="fw-bold">Inventory</a>
       <a href="owner_product.php">Products</a>
-      <a href="#">Customers</a>
-      <a href="#">Orders</a>
-      <a href="#">Debts</a>
+      <a href="owner_customer.php">Customers</a>
+      <a href="owner_orders.php">Orders</a>
       <a href="owner_supplier.php">Suppliers</a>
-      <a href="#">Reports</a>
-      <a href="#">Settings</a>
-      <a href="#">Logout</a>
+      <a href="owner_settings.php">Settings</a>
+      <a href="logout.php">Logout</a>
     </div>
 
     <!-- Inventory Table -->
