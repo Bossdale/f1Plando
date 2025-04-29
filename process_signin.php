@@ -24,7 +24,7 @@ if (empty($usernameOrEmail) || empty($password) || empty($role)) {
 }
 
 // Prepare and execute the query
-$stmt = $connection->prepare("SELECT * FROM tblUser WHERE (username = ? OR email = ?)");
+$stmt = $connection->prepare("SELECT * FROM tbluser WHERE (username = ? OR email = ?)");
 $stmt->bind_param("ss", $usernameOrEmail, $usernameOrEmail);
 $stmt->execute();
 $result = $stmt->get_result();

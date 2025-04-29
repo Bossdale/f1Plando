@@ -55,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $username_error = "Username can only contain letters, numbers, and underscores";
         } else {
             // Check if username already exists
-            $check_username_sql = "SELECT username FROM user WHERE username = ?";
+            $check_username_sql = "SELECT username FROM tbluser WHERE username = ?";
             $check_username_stmt = mysqli_prepare($conn, $check_username_sql);
             if ($check_username_stmt) {
                 mysqli_stmt_bind_param($check_username_stmt, "s", $username);
@@ -142,7 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // If there are no errors, proceed with registration
     if (empty($username_error) && empty($password_error) && empty($confirm_password_error) && empty($firstname_error) && empty($lastname_error) && empty($email_error) && empty($contactNumber_error) && empty($address_error)) {
         // Use prepared statements to prevent SQL injection
-        $sql = "INSERT INTO user (username, password, firstname, lastname, email, contactNum, address) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO tbluser (username, password, firstname, lastname, email, contactNum, address) VALUES (?, ?, ?, ?, ?, ?, ?)";
         $stmt = mysqli_prepare($conn, $sql);
 
         if ($stmt) {
@@ -152,7 +152,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Store username and password in session
                 $_SESSION['username'] = $username;
                 $_SESSION['password'] = $password;
-                header("Location: login.php");
+                header("Location: signin.php");
                 exit();
             } else {
                 $register_error = "Registration failed: " . mysqli_error($conn);
