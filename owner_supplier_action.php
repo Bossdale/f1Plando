@@ -2,48 +2,40 @@
 include __DIR__ . '/connect.php';
 session_start();
 
-// DELETE
-if (isset($_GET['delete'])) {
-  $supplierID = intval($_GET['delete']);
+if (!$connection) {
+  die("Database connection failed: " . mysqli_connect_error());
+}
 
-  $stmt = $connection->prepare("DELETE FROM tblSupplier WHERE supplierID = ?");
-  $stmt->bind_param("i", $supplierID);
-  if ($stmt->execute()) {
-    header("Location: owner_supplier.php?deleted=1");
-    exit();
+// Add Supplier
+if (isset($_POST['add_supplier'])) {
+  $supplierID = mysqli_real_escape_string($connection, $_POST['userID']);
+  $contactPerson = mysqli_real_escape_string($connection, $_POST['contactPerson']);
+  
+  // Update the existing supplier entry with contact person and last delivery date
+  $updateQuery = "UPDATE tblSupplier 
+                  SET contactPerson = '$contactPerson', lastDeliveryDate = CURRENT_DATE 
+                  WHERE supplierID = '$supplierID'";
+
+  if (mysqli_query($connection, $updateQuery)) {
+    header("Location: owner_supplier.php?success=added");
+    exit;
   } else {
-    echo "Error deleting: " . $stmt->error;
+    die("Error adding supplier: " . mysqli_error($connection));
   }
 }
 
-// ADD or EDIT
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  $supplierID = isset($_POST['supplierID']) ? intval($_POST['supplierID']) : 0;
-  $userID = $_POST['userID'];
-  $companyName = $_POST['companyName'];
-  $contactPerson = $_POST['contactPerson'];
-  $lastDeliveryDate = $_POST['lastDeliveryDate'];
-
-  if ($supplierID > 0) {
-    // EDIT
-    $stmt = $connection->prepare("UPDATE tblSupplier SET userID=?, companyName=?, contactPerson=?, lastDeliveryDate=? WHERE supplierID=?");
-    $stmt->bind_param("isssi", $userID, $companyName, $contactPerson, $lastDeliveryDate, $supplierID);
-    if ($stmt->execute()) {
-      header("Location: owner_supplier.php?updated=1");
-      exit();
-    } else {
-      echo "Update error: " . $stmt->error;
-    }
+// Delete Supplier
+if (isset($_POST['delete_supplier_id'])) {
+  $supplierID = mysqli_real_escape_string($connection, $_POST['delete_supplier_id']);
+  
+  $deleteQuery = "DELETE FROM tblSupplier WHERE supplierID = '$supplierID'";
+  if (mysqli_query($connection, $deleteQuery)) {
+    header("Location: owner_supplier.php?success=deleted");
+    exit;
   } else {
-    // ADD
-    $stmt = $connection->prepare("INSERT INTO tblSupplier (userID, companyName, contactPerson, lastDeliveryDate) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $userID, $companyName, $contactPerson, $lastDeliveryDate);
-    if ($stmt->execute()) {
-      header("Location: owner_supplier.php?added=1");
-      exit();
-    } else {
-      echo "Insert error: " . $stmt->error;
-    }
+    die("Error deleting supplier: " . mysqli_error($connection));
   }
 }
-?>
+
+header("Location: owner_supplier.php");
+exit;

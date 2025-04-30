@@ -1,28 +1,34 @@
 <?php
-  include __DIR__ . '/connect.php';
-  session_start();
+include __DIR__ . '/connect.php';
+session_start();
 
-  if (!$connection) {
-    die("Database connection failed: " . mysqli_connect_error());
-  }
+if (!$connection) {
+  die("Database connection failed: " . mysqli_connect_error());
+}
 
-  // Fetch suppliers
-  $supplierQuery = "SELECT s.supplierID, u.firstname, u.lastname, s.companyName, s.lastDeliveryDate
-                    FROM tblSupplier s
-                    JOIN tblUser u ON s.userID = u.userID";
-  $supplierResult = mysqli_query($connection, $supplierQuery);
-  $suppliers = [];
-  while ($row = mysqli_fetch_assoc($supplierResult)) {
-    $suppliers[] = $row;
-  }
+// Fetch suppliers
+$supplierQuery = "SELECT s.supplierID, u.firstname, u.lastname, s.companyName, s.contactPerson, s.lastDeliveryDate
+                  FROM tblSupplier s
+                  JOIN tblUser u ON s.userID = u.userID";
+$supplierResult = mysqli_query($connection, $supplierQuery);
+$suppliers = [];
+while ($row = mysqli_fetch_assoc($supplierResult)) {
+  $suppliers[] = $row;
+}
+
+// Fetch supplier dropdown list
+$dropdownQuery = "SELECT s.supplierID, u.firstname, u.lastname, s.companyName
+                  FROM tblSupplier s
+                  JOIN tblUser u ON s.userID = u.userID";
+$dropdownResult = mysqli_query($connection, $dropdownQuery);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Suppliers - StoreStock</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -59,7 +65,7 @@
   <div class="row">
     <!-- Sidebar -->
     <div class="col-md-2 sidebar d-flex flex-column p-3">
-      <img src="logo.png" alt="StoreStock Logo" class="logo">
+      <img src="logo.png" alt="StoreStock Logo" class="logo mb-2">
       <h4 class="text-white">STORESTOCK</h4>
       <a href="owner_dashboard.php">Dashboard</a>
       <a href="owner_inventory.php">Inventory</a>
@@ -70,12 +76,13 @@
       <a href="owner_settings.php">Settings</a>
       <a href="logout.php">Logout</a>
     </div>
+
     <!-- Main Content -->
     <div class="col-md-10 p-4">
       <h3 class="mb-4">Suppliers</h3>
 
       <!-- Add Supplier Button -->
-      <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addModal">➕ Add Supplier</button>
+      <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addSupplierModal">➕ Add Supplier</button>
 
       <!-- Supplier Table -->
       <table class="table table-bordered table-striped">
@@ -83,6 +90,7 @@
           <tr>
             <th>Name</th>
             <th>Company</th>
+            <th>Contact Person</th>
             <th>Last Delivery</th>
             <th>Actions</th>
           </tr>
@@ -90,13 +98,22 @@
         <tbody>
           <?php foreach ($suppliers as $supplier): ?>
             <tr>
-              <td><?php echo htmlspecialchars($supplier['firstname'] . ' ' . $supplier['lastname']); ?></td>
-              <td><?php echo htmlspecialchars($supplier['companyName']); ?></td>
-              <td><?php echo $supplier['lastDeliveryDate']; ?></td>
+              <td><?= htmlspecialchars($supplier['firstname'] . ' ' . $supplier['lastname']) ?></td>
+              <td><?= htmlspecialchars($supplier['companyName']) ?></td>
+              <td><?= htmlspecialchars($supplier['contactPerson']) ?></td>
+              <td><?= htmlspecialchars($supplier['lastDeliveryDate']) ?></td>
               <td>
-                <a href="supplier_edit.php?id=<?php echo $supplier['supplierID']; ?>" class="btn btn-sm btn-warning">✏️</a>
-                <a href="supplier_delete.php?id=<?php echo $supplier['supplierID']; ?>" class="btn btn-sm btn-danger">🗑️</a>
-                <a href="supplier_products.php?id=<?php echo $supplier['supplierID']; ?>" class="btn btn-sm btn-info">📦 View Products</a>
+                <form action="owner_supplier_action.php" method="POST" class="d-inline">
+                  <input type="hidden" name="delete_supplier_id" value="<?= $supplier['supplierID'] ?>">
+                  <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this supplier?')">🗑️</button>
+                </form>
+          
+                <!-- Inside the Actions column -->
+                <form action="owner_supplier_product_view.php" method="POST" style="display:inline;">
+                  <input type="hidden" name="supplierID" value="<?php echo $supplier['supplierID']; ?>">
+                  <button type="submit" class="btn btn-sm btn-info">📦 View Products</button>
+                </form>
+
               </td>
             </tr>
           <?php endforeach; ?>
@@ -107,33 +124,33 @@
 </div>
 
 <!-- Add Supplier Modal -->
-<div class="modal fade" id="addModal" tabindex="-1">
+<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
   <div class="modal-dialog">
-    <form method="post" action="owner_supplier_action.php" class="modal-content">
+    <form action="owner_supplier_action.php" method="POST" class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Add Supplier</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <h5 class="modal-title" id="addSupplierModalLabel">Add Supplier</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <input type="hidden" name="add_supplier" value="1">
         <div class="mb-3">
-          <label>User ID</label>
-          <input type="number" class="form-control" name="userID" required>
+          <label for="userID" class="form-label">Select Supplier</label>
+          <select name="userID" id="userID" class="form-select" required>
+            <option value="">-- Select --</option>
+            <?php while ($row = mysqli_fetch_assoc($dropdownResult)): ?>
+              <option value="<?= $row['supplierID'] ?>">
+                <?= htmlspecialchars($row['firstname'] . ' ' . $row['lastname']) ?> - <?= htmlspecialchars($row['companyName']) ?>
+              </option>
+            <?php endwhile; ?>
+          </select>
         </div>
         <div class="mb-3">
-          <label>Company Name</label>
-          <input type="text" class="form-control" name="companyName" required>
-        </div>
-        <div class="mb-3">
-          <label>Contact Person</label>
-          <input type="text" class="form-control" name="contactPerson" required>
-        </div>
-        <div class="mb-3">
-          <label>Last Delivery Date</label>
-          <input type="date" class="form-control" name="lastDeliveryDate" required>
+          <label for="contactPerson" class="form-label">Contact Person</label>
+          <input type="text" name="contactPerson" id="contactPerson" class="form-control" required>
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-success" type="submit">Add Supplier</button>
+        <button type="submit" class="btn btn-primary">➕ Add</button>
       </div>
     </form>
   </div>
@@ -142,4 +159,3 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-

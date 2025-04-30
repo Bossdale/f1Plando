@@ -8,6 +8,69 @@
 
   $userID = $_SESSION['userID'];
 
+  // Update logic
+  if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Update Profile
+    if (isset($_POST['update_profile'])) {
+      $firstname = $_POST['firstname'];
+      $lastname = $_POST['lastname'];
+      $email = $_POST['email'];
+      $contactNum = $_POST['contactNum'];
+      $address = $_POST['address'];
+
+      $stmt = $connection->prepare("UPDATE tblUser SET firstname=?, lastname=?, email=?, contactNum=?, address=? WHERE userID=?");
+      $stmt->bind_param("sssssi", $firstname, $lastname, $email, $contactNum, $address, $userID);
+      $stmt->execute();
+
+      $_SESSION['alert'] = "Profile updated successfully!";
+      header("Location: owner_settings.php");
+      exit();
+    }
+
+    // Update Store Name
+    if (isset($_POST['update_store'])) {
+      $storeName = $_POST['storeName'];
+
+      $stmt = $connection->prepare("UPDATE tblOwner SET storeName=? WHERE userID=?");
+      $stmt->bind_param("si", $storeName, $userID);
+      $stmt->execute();
+
+      $_SESSION['alert'] = "Store name updated successfully!";
+      header("Location: owner_settings.php");
+      exit();
+    }
+
+    // Update Password
+    if (isset($_POST['update_password'])) {
+      $current = $_POST['currentPassword'];
+      $new = $_POST['newPassword'];
+      $confirm = $_POST['confirmPassword'];
+
+      $stmt = $connection->prepare("SELECT password FROM tblUser WHERE userID=?");
+      $stmt->bind_param("i", $userID);
+      $stmt->execute();
+      $result = $stmt->get_result();
+      $user = $result->fetch_assoc();
+      $userPass = $user['password'];
+      if ($current === $userPass) {
+        if ($new === $confirm) {
+          $update = $connection->prepare("UPDATE tblUser SET password=? WHERE userID=?");
+          $update->bind_param("si", $new, $userID);
+          $update->execute();
+          $_SESSION['alert'] = "Password changed successfully!";
+        } else {
+          echo "<script>alert('New passwords do not match');</script>";
+          $_SESSION['alert'] = "New passwords do not match.";
+        }
+      } else {
+        echo "<script>alert('Current password is incorrect');</script>";
+        $_SESSION['alert'] = "Current password is incorrect.";
+      }
+      header("Location: owner_settings.php");
+      exit();
+    }
+  }
+
   // Fetch user and owner info
   $query = "SELECT u.firstname, u.lastname, u.email, u.contactNum, u.address, o.storeName 
             FROM tblUser u JOIN tblOwner o ON u.userID = o.userID WHERE u.userID = ?";
@@ -74,10 +137,18 @@
 
     <!-- Main Content -->
     <div class="col-md-10 p-4">
+        <?php if (isset($_SESSION['alert'])): ?>
+      <div class="alert alert-info alert-dismissible fade show" role="alert">
+        <?php echo $_SESSION['alert']; unset($_SESSION['alert']); ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    <?php endif; ?>
+
       <h3 class="mb-4">Settings</h3>
 
       <!-- Profile Management -->
-      <form action="update_profile.php" method="POST" class="mb-5">
+      <form method="POST" class="mb-5">
+        <input type="hidden" name="update_profile" value="1">
         <h5 class="section-title">Profile Information</h5>
         <div class="row">
           <div class="col-md-4">
@@ -109,7 +180,8 @@
       </form>
 
       <!-- Store Information -->
-      <form action="update_store.php" method="POST" class="mb-5">
+      <form method="POST" class="mb-5">
+        <input type="hidden" name="update_store" value="1">
         <h5 class="section-title">Store Information</h5>
         <div class="row">
           <div class="col-md-6">
@@ -123,7 +195,8 @@
       </form>
 
       <!-- Change Password -->
-      <form action="update_password.php" method="POST">
+      <form method="POST">
+        <input type="hidden" name="update_password" value="1">
         <h5 class="section-title">Change Password</h5>
         <div class="row">
           <div class="col-md-4">
