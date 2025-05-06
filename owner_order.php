@@ -204,23 +204,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
             $stmt_item->close();
     
-            // Step 4: If unpaid, update customer's totalDebt
-            if (strtolower($paymentStatus) === 'unpaid') {
-                $sql_debt = "
-                    UPDATE tblcustomer
-                    SET totalDebt = totalDebt + ?
-                    WHERE customerID = ?
-                ";
-                $stmt_debt = $connection->prepare($sql_debt);
-                if (!$stmt_debt) {
-                    throw new Exception("Prepare debt update failed: " . $connection->error);
-                }
-                $stmt_debt->bind_param("di", $totalOrderAmount, $customerID);
-                if (!$stmt_debt->execute()) {
-                    throw new Exception("Execute debt update failed: " . $stmt_debt->error);
-                }
-                $stmt_debt->close();
-            }
+// Step 4: Update totalPrice in tblorder
+$sql_total_price = "
+    UPDATE tblorder
+    SET totalPrice = ?
+    WHERE orderID = ?
+";
+$stmt_total_price = $connection->prepare($sql_total_price);
+if (!$stmt_total_price) {
+    throw new Exception("Prepare totalPrice update failed: " . $connection->error);
+}
+$stmt_total_price->bind_param("di", $totalOrderAmount, $orderID);
+if (!$stmt_total_price->execute()) {
+    throw new Exception("Execute totalPrice update failed: " . $stmt_total_price->error);
+}
+$stmt_total_price->close();
+
+// Step 5: If unpaid, update customer's totalDebt
+if (strtolower($paymentStatus) === 'unpaid') {
+    $sql_debt = "
+        UPDATE tblcustomer
+        SET totalDebt = totalDebt + ?
+        WHERE customerID = ?
+    ";
+    $stmt_debt = $connection->prepare($sql_debt);
+    if (!$stmt_debt) {
+        throw new Exception("Prepare debt update failed: " . $connection->error);
+    }
+    $stmt_debt->bind_param("di", $totalOrderAmount, $customerID);
+    if (!$stmt_debt->execute()) {
+        throw new Exception("Execute debt update failed: " . $stmt_debt->error);
+    }
+    $stmt_debt->close();
+}
+
     
             // Everything OK!
             $connection->commit();
@@ -463,14 +480,6 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
                                 const selectedOpt = select.options[select.selectedIndex];
                                 const rawPrice = selectedOpt.getAttribute('data-unit-price') || '';
 
-                                // Optional: format as currency
-                                // const price = rawPrice
-                                //   ? Number(rawPrice).toLocaleString('en-US', {
-                                //       style: 'currency',
-                                //       currency: 'USD'
-                                //     })
-                                //   : '';
-                                // If you want raw number, uncomment next line and comment out the formatting above:
                                 const price = rawPrice;
 
                                 const unitPriceInput = document.querySelector(
@@ -491,126 +500,95 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
                 </form>
             </div>
 
-            <h4 class="mt-4">Customer List</h4>
-            <table class="table table-bordered table-striped">
-                <thead class="table-light">
-                    <tr>
-                        <th>Name</th>
-                        <th>Contact</th>
-                        <th>Total Debt</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (!empty($customers)): ?>
-                        <?php foreach ($customers as $customer): ?>
-                            <tr>
-                                <td><?php echo htmlspecialchars($customer['fullName']); ?></td>
-                                <td><?php echo htmlspecialchars($customer['contactNumber']); ?></td>
-                                <td>₱<?php echo number_format($customer['totalDebt'], 2); ?></td>
-                                <td>
-                                    <a href="customer_edit.php?id=<?php echo $customer['customerID']; ?>" class="btn btn-sm btn-warning">✏️</a>
-                                    <a href="customer_delete.php?id=<?php echo $customer['customerID']; ?>" class="btn btn-sm btn-danger">🗑️</a>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <tr><td colspan="4">No customers added yet.</td></tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
+<h4 class="mt-4">Customer List</h4>
+<table class="table table-bordered table-striped">
+    <thead class="table-light">
+        <tr>
+            <th>Name</th>
+            <th>Contact</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (!empty($customers)): ?>
+            <?php foreach ($customers as $customer): ?>
+                <tr>
+                    <td><?php echo htmlspecialchars($customer['fullName']); ?></td>
+                    <td><?php echo htmlspecialchars($customer['contactNumber']); ?></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm view-order-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#viewOrderModal"
+                                data-customer='<?php echo json_encode([
+                                  'fullName' => $customer['fullName'],
+                                  'contactNumber' => $customer['contactNumber'],
+                                  'orders' => $customer['orders'] ?? []
+                                ]); ?>'>
+                            View Order
+                        </button>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr><td colspan="3">No customers added yet.</td></tr>
+        <?php endif; ?>
+    </tbody>
+</table>
+
+<!-- Modal -->
+<div class="modal fade" id="viewOrderModal" tabindex="-1" aria-labelledby="viewOrderModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Customer Orders</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Name:</strong> <span id="modalCustomerName"></span></p>
+        <p><strong>Contact:</strong> <span id="modalCustomerContact"></span></p>
+
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Product Name</th>
+              <th>Quantity</th>
+              <th>Price at Purchase</th>
+            </tr>
+          </thead>
+          <tbody id="modalOrderItems">
+            <!-- Filled dynamically -->
+          </tbody>
+        </table>
+      </div>
     </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<div id="orderItemsContainer">
-  <div class="row mb-3 order-item" data-row-id="0">
-    <!-- your existing columns... -->
   </div>
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('orderItemsContainer');
-    const addBtn = document.getElementById('addOrderItem');
+document.querySelectorAll('.view-order-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const customer = JSON.parse(btn.getAttribute('data-customer'));
 
-    // ✅ Delegate product-select change to fill unit price
-    container.addEventListener('change', e => {
-      // Only handle when product-select is changed
-      if (!e.target.classList.contains('product-select')) return;
+    document.getElementById('modalCustomerName').textContent = customer.fullName;
+    document.getElementById('modalCustomerContact').textContent = customer.contactNumber;
 
-      const select = e.target;
-      const row = select.closest('.order-item');
-      if (!row) return;
+    const tableBody = document.getElementById('modalOrderItems');
+    tableBody.innerHTML = '';
 
-      const selectedOption = select.options[select.selectedIndex];
-      const price = selectedOption.getAttribute('data-unit-price') || '';
+    if (customer.orders.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="3">No orders found.</td></tr>';
+      return;
+    }
 
-      // Select the unit price input in the same row
-      const unitPriceInput = row.querySelector('.unit-price-input');
-      if (unitPriceInput) {
-        unitPriceInput.value = price;  // Update only the selected row's unit price
-      }
-    });
-
-    // ✅ Delegate remove buttons for deleting rows
-    container.addEventListener('click', e => {
-      if (!e.target.classList.contains('remove-item-btn')) return;
-      const row = e.target.closest('.order-item');
-      if (row) row.remove();
-    });
-
-    // ✅ Add Item button
-    addBtn.addEventListener('click', () => {
-      const allRows = container.querySelectorAll('.order-item');
-      let maxId = 0;
-
-      allRows.forEach(row => {
-        const rowId = parseInt(row.dataset.rowId, 10);
-        if (rowId > maxId) maxId = rowId;
-      });
-
-      const newId = maxId + 1;
-      const lastRow = allRows[allRows.length - 1];
-      const newRow = lastRow.cloneNode(true);
-      newRow.dataset.rowId = newId;
-
-      // Update fields inside the cloned row
-      newRow.querySelectorAll('select, input, button, label').forEach(el => {
-        // Update ID (e.g., productID_0 -> productID_1)
-        if (el.id) {
-          el.id = el.id.replace(/(_)\d+/, `$1${newId}`);
-        }
-
-        // Update data-row-id to the new row's ID
-        if (el.dataset.rowId !== undefined) {
-          el.dataset.rowId = newId;
-        }
-
-        // Update label "for" to match new row ID
-        if (el.tagName === 'LABEL' && el.htmlFor) {
-          el.htmlFor = el.htmlFor.replace(/(_)\d+/, `$1${newId}`);
-        }
-
-        // Reset fields in the new row
-        if (el.tagName === 'SELECT') {
-          el.selectedIndex = 0;
-        }
-
-        if (el.tagName === 'INPUT') {
-          if (el.classList.contains('quantity-input')) {
-            el.value = 1; // Reset quantity to 1
-          } else if (el.classList.contains('unit-price-input')) {
-            el.value = ''; // Reset unit price to empty
-          }
-        }
-      });
-
-      // Append the new row to the container
-      container.appendChild(newRow);
+    customer.orders.forEach(order => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${order.productName}</td>
+        <td>${order.quantity}</td>
+        <td>${order.priceAtPurchase}</td>
+      `;
+      tableBody.appendChild(row);
     });
   });
+});
 </script>
-
-
-

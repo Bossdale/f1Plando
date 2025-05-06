@@ -2,12 +2,12 @@
     // No need to include process_signin.php here
     include __DIR__ . '/connect.php';
     session_start();
-
+ 
     // Optional: Handle any session-based error messages
     $error = $_SESSION['error'] ?? '';
     unset($_SESSION['error']); // Clear the error message after displaying
 ?>
-
+ 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -96,14 +96,14 @@
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Sign In</h2>
-
+ 
         <?php if (!empty($error)): ?>
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                 <strong class="font-bold">Error:</strong>
                 <span class="block sm:inline"><?php echo htmlspecialchars($error); ?></span>
             </div>
         <?php endif; ?>
-
+ 
         <form action="process_signin.php" method="post">
             <div class="mb-4">
                 <label for="username" class="block text-gray-700 text-sm font-bold mb-2">Username or Email:</label>

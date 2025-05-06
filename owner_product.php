@@ -18,10 +18,6 @@ $products = [];
 while ($row = mysqli_fetch_assoc($productResult)) {
   $products[] = $row;
 }
-
-// Fetch suppliers for dropdown
-$supplierQuery = "SELECT supplierID, companyName FROM tblSupplier";
-$supplierResult = mysqli_query($connection, $supplierQuery);
 ?>
 
 <!DOCTYPE html>
@@ -87,10 +83,9 @@ $supplierResult = mysqli_query($connection, $supplierQuery);
         <div class="alert alert-info">Product updated successfully!</div>
       <?php elseif (isset($_GET['deleted'])): ?>
         <div class="alert alert-danger">Product deleted permanently!</div>
+      <?php elseif (isset($_GET['bought'])): ?>
+        <div class="alert alert-success">Inventory updated successfully!</div>
       <?php endif; ?>
-
-      <!-- Add Product Button -->
-      <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#productModal" id="addProductBtn">➕ Add Product</button>
 
       <!-- Product Table -->
       <table class="table table-bordered table-striped">
@@ -115,19 +110,10 @@ $supplierResult = mysqli_query($connection, $supplierQuery);
               <td><?= htmlspecialchars($product['companyName']) ?></td>
               <td><?= $product['isActive'] ? 'Active' : 'Inactive' ?></td>
               <td>
-                <button class="btn btn-sm btn-warning editProductBtn"
+                <button class="btn btn-sm btn-success buyProductBtn"
                   data-id="<?= $product['productID'] ?>"
-                  data-name="<?= htmlspecialchars($product['productName'], ENT_QUOTES) ?>"
-                  data-category="<?= htmlspecialchars($product['category'], ENT_QUOTES) ?>"
-                  data-cost="<?= $product['costPrice'] ?>"
-                  data-price="<?= $product['sellingPrice'] ?>"
-                  data-supplierid="<?= $product['supplierID'] ?>"
-                  data-description="<?= htmlspecialchars($product['description'] ?? '', ENT_QUOTES) ?>">
-                  ✏️
-                </button>
-                <button class="btn btn-sm btn-danger"
-                    onclick="confirmDelete(<?= $product['productID'] ?>, '<?= htmlspecialchars($product['productName']) ?>')">
-                    🗑️
+                  data-name="<?= htmlspecialchars($product['productName'], ENT_QUOTES) ?>">
+                  🛒 Buy
                 </button>
               </td>
             </tr>
@@ -138,133 +124,54 @@ $supplierResult = mysqli_query($connection, $supplierQuery);
   </div>
 </div>
 
-<!-- Modal -->
-<div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <form id="productForm" method="POST" action="owner_product_action.php">
-        <input type="hidden" name="productID" id="productID">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalTitle">Add Product</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-md-4">
-              <label>Product Name</label>
-              <input type="text" name="productName" id="productName" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-              <label>Category</label>
-              <input type="text" name="category" id="category" class="form-control" required>
-            </div>
-            <div class="col-md-2">
-              <label>Cost Price</label>
-              <input type="number" name="costPrice" id="costPrice" step="0.01" class="form-control" required>
-            </div>
-            <div class="col-md-3">
-              <label>Selling Price</label>
-              <input type="number" name="sellingPrice" id="sellingPrice" step="0.01" class="form-control" required>
-            </div>
-          </div>
-          <div class="row mt-2">
-            <div class="col-md-6">
-              <label>Supplier</label>
-              <select name="supplierID" id="supplierID" class="form-control" required>
-                <?php mysqli_data_seek($supplierResult, 0); while ($s = mysqli_fetch_assoc($supplierResult)): ?>
-                  <option value="<?= $s['supplierID'] ?>"><?= htmlspecialchars($s['companyName']) ?></option>
-                <?php endwhile; ?>
-              </select>
-            </div>
-            <div class="col-md-6">
-              <label>Description</label>
-              <textarea name="description" id="description" class="form-control" rows="2"></textarea>
-            </div>
-            <div class="col-md-3">
-              <label>Status</label>
-                <select name="isActive" id="editIsActive" class="form-control">
-               <option value="1">Active</option>
-               <option value="0">Inactive</option>
-                </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          
-          <button type="submit" id="submitBtn" class="btn btn-success">Save</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-</div><!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+<!-- Buy Product Modal -->
+<div class="modal fade" id="buyModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <form method="GET" action="owner_product_action.php" class="modal-content">
-      <input type="hidden" name="delete" id="deleteProductID">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title">Confirm Deletion</h5>
+    <form method="POST" action="owner_product_action.php" class="modal-content">
+      <input type="hidden" name="buyProductID" id="buyProductID">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Buy Product</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        Are you sure you want to permanently delete <strong id="deleteProductName"></strong>?
-        This action <span class="text-danger fw-bold">cannot be undone.</span>
+        <p>Buying: <strong id="buyProductName"></strong></p>
+        <div class="mb-3">
+          <label for="quantity" class="form-label">Quantity</label>
+          <input type="number" name="quantity" id="quantity" class="form-control" min="1" required>
+        </div>
+        <div class="mb-3">
+          <label for="unit" class="form-label">Unit</label>
+          <select name="unit" id="unit" class="form-select" required>
+            <option value="">-- Select Unit --</option>
+            <option value="Pcs">Pcs</option>
+            <option value="Packs">Packs</option>
+            <option value="Sachets">Sachets</option>
+            <option value="Bottle">Bottle</option>
+            <option value="Cans">Cans</option>
+          </select>
+        </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <button type="submit" name="buyProduct" class="btn btn-success">Confirm Purchase</button>
       </div>
     </form>
   </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const addBtn = document.getElementById('addProductBtn');
-const modal = new bootstrap.Modal(document.getElementById('productModal'));
-const form = document.getElementById('productForm');
+  document.querySelectorAll('.buyProductBtn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      document.getElementById('buyProductID').value = this.dataset.id;
+      document.getElementById('buyProductName').textContent = this.dataset.name;
+      document.getElementById('quantity').value = '';
+      document.getElementById('unit').value = '';
 
-addBtn.addEventListener('click', function () {
-  document.getElementById('modalTitle').innerText = "Add Product";
-  document.getElementById('submitBtn').innerText = "Save";
-  form.action = 'owner_product_action.php';
-  form.reset();
-  document.getElementById('productID').value = '';
-});
-
-document.querySelectorAll('.editProductBtn').forEach(button => {
-  button.addEventListener('click', function () {
-    document.getElementById('modalTitle').innerText = "Edit Product";
-    document.getElementById('submitBtn').innerText = "Update";
-    form.action = 'owner_product_action.php';
-
-    document.getElementById('productID').value = this.dataset.id;
-    document.getElementById('productName').value = this.dataset.name;
-    document.getElementById('category').value = this.dataset.category;
-    document.getElementById('costPrice').value = this.dataset.cost;
-    document.getElementById('sellingPrice').value = this.dataset.price;
-    document.getElementById('supplierID').value = this.dataset.supplierid;
-    document.getElementById('description').value = this.dataset.description;
-
-    modal.show();
+      const modal = new bootstrap.Modal(document.getElementById('buyModal'));
+      modal.show();
+    });
   });
-});
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  function confirmDelete(productID, productName) {
-    document.getElementById('deleteProductID').value = productID;
-    document.getElementById('deleteProductName').textContent = productName;
-
-    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-    deleteModal.show();
-  }
-</script>
-
 
 </body>
 </html>
