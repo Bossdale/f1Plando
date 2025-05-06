@@ -9,7 +9,7 @@ if (session_status() === PHP_SESSION_NONE) {
 include __DIR__ . '/connect.php';
 
 // Session validation
-if (!isset($_SESSION['userID']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Supplier') {
+if (!isset($_SESSION['userID']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'supplier') {
     header("Location: signin.php");
     exit;
 }

@@ -1,7 +1,6 @@
 <?php
 // Include the database connection
 include __DIR__ . '/connect.php';
-
 if (php_sapi_name() === "cli") {
     die("This script is meant to be run from a web browser.");
 }
@@ -72,9 +71,9 @@ if ($result && $result->num_rows === 1) {
         $_SESSION['role'] = $role;
 
         // Redirect based on the role
-        if ($role === 'Owner') {
+        if ($role === 'owner') {
             header("Location: owner_dashboard.php");
-        } elseif ($role === 'Supplier') {
+        } elseif ($role === 'supplier') {
             header("Location: supplier_dashboard.php");
         }
         exit();

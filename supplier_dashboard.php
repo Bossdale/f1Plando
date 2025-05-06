@@ -4,10 +4,8 @@ ini_set('display_errors', 1);
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-
-
 // Session check
-if (!isset($_SESSION['userID']) || !isset($_SESSION['role']) || $_SESSION['role'] != 'Supplier') {
+if (!isset($_SESSION['userID']) || $_SESSION['role'] !== 'supplier') {
     header("Location: signin.php");
     exit();
 }
