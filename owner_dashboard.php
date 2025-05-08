@@ -1,10 +1,7 @@
-<!-- Keep the PHP part as-is -->
 <?php
     include __DIR__ . '/connect.php';
     include __DIR__ . '/readrecords.php';
-
     $userName = "User"; 
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -23,6 +20,7 @@
     min-height: 100vh;
     margin: 0;
   }
+
   html, body {
     height: 100%;
     margin: 0;
@@ -62,6 +60,7 @@
     overflow-y: hidden !important;
     overscroll-behavior: none;
 }
+
 
   .sidebar a {
     color: maroon;
@@ -156,7 +155,6 @@
     transition: opacity 0.3s;
   }
 
-
   .navbar-nav .nav-link:hover {
     opacity: 0.8;
   }
@@ -165,11 +163,11 @@
     height: 100%;
   }
 
-
   .d-flex.flex-row.min-vh-100 {
     height: 100%;
     overflow: hidden;
   }
+
 
   #toggleSidebar {
     background: rgba(255,255,255,0.3);
@@ -179,7 +177,6 @@
     border-radius: 8px;
     transition: background 0.3s;
   }
-
 
   #toggleSidebar:hover {
     background: rgba(255,255,255,0.5);
@@ -235,6 +232,8 @@
     text-align: center;
   }
 
+</style>
+
 </head>
 <body>
 <div class="container-fluid">
@@ -264,7 +263,7 @@
       <a href="owner_inventory.php"><i class="fas fa-boxes"></i> Inventory</a>
       <a href="owner_product.php"><i class="fas fa-tags"></i> Products</a>
       <a href="owner_customer.php"><i class="fas fa-users"></i> Customers</a>
-      <a href="owner_orders.php"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="owner_order.php"><i class="fas fa-receipt"></i> Orders</a>
       <a href="owner_supplier.php"><i class="fas fa-truck"></i> Suppliers</a>
       <a href="owner_settings.php"><i class="fas fa-cog"></i> Settings</a>
       <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
@@ -351,9 +350,7 @@
         </div>
       </div>
 
-
       <div class="row g-4 mt-4" style="margin-bottom: 100px;">
-
         <div class="col-md-6">
           <h6 class="section-title">Sales Overview</h6>
           <canvas id="salesChart"></canvas>
@@ -366,7 +363,7 @@
     </div>
   </div>
 </div>
- 
+
 <script>
   const salesData = <?php echo json_encode($salesData); ?>;
   const topProductsData = <?php echo json_encode($topProductsData); ?>;
@@ -436,7 +433,6 @@
         }
       }
     }
-
   });
 </script>
 
@@ -453,3 +449,5 @@
 
 </body>
 </html>
+owner_dashboard.php
+13 KB
