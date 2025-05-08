@@ -41,7 +41,7 @@ $firstName = $_SESSION['firstname'];
     <div class="col-md-2 sidebar p-3">
       <img src="logo.png" class="logo mb-3" alt="Logo">
       <h5><?php echo htmlspecialchars($firstName); ?></h5>
-      <a href="#">🏠 Dashboard</a>
+      <a href="supplier_dashboard.php">🏠 Dashboard</a>
       <a href="supplier_products.php">📦 My Products</a>
       <a href="deliveries.php">🚚 Deliveries</a>
       <a href="linked_stores.php">🏬 Linked Stores</a>
