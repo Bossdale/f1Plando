@@ -1,4 +1,5 @@
 <?php
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 if (session_status() === PHP_SESSION_NONE) {
@@ -6,6 +7,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 // Session check
 if (!isset($_SESSION['userID']) || $_SESSION['role'] !== 'supplier') {
+
     header("Location: signin.php");
     exit();
 }
@@ -14,6 +16,7 @@ include __DIR__ . '/connect.php';
 include __DIR__ . '/supplier_dashboard_data.php';
 
 $firstName = $_SESSION['firstname'];
+
 ?>
 
 <!DOCTYPE html>
@@ -25,13 +28,41 @@ $firstName = $_SESSION['firstname'];
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background-color: #f8f9fa; }
-    .sidebar { background-color: rgb(115, 32, 21); color: white; height: 100vh; }
-    .sidebar a { color: white; text-decoration: none; padding: 10px 20px; display: block; }
-    .sidebar a:hover { background-color: #af3222; }
-    .header-card { background-color: #e39363; color: white; padding: 20px; border-radius: 10px; }
-    .section-title { margin: 20px 0 10px; font-weight: bold; }
-    .logo { border-radius: 50%; width: 100px; height: 100px; object-fit: cover; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f8f9fa;
+    }
+    .sidebar {
+      background-color: rgb(115, 32, 21);
+      color: white;
+      height: 100vh;
+    }
+    .sidebar a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      display: block;
+    }
+    .sidebar a:hover {
+      background-color: #af3222;
+    }
+    .header-card {
+      background-color: #e39363;
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    .section-title {
+      margin: 20px 0 10px;
+      font-weight: bold;
+    }
+    .logo {
+      border-radius: 50%;
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+    }
+
   </style>
 </head>
 <body>
