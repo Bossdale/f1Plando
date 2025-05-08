@@ -351,7 +351,7 @@
         </div>
       </div>
 
-      <div class="row g-4 mt-4">
+      <div class="row g-4 mt-4" style="margin-bottom: 100px;">
         <div class="col-md-6">
           <h6 class="section-title">Sales Overview</h6>
           <canvas id="salesChart"></canvas>
