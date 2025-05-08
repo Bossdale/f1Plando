@@ -43,7 +43,7 @@ $firstName = $_SESSION['firstname'];
       <h5><?php echo htmlspecialchars($firstName); ?></h5>
       <a href="supplier_dashboard.php">🏠 Dashboard</a>
       <a href="supplier_products.php">📦 My Products</a>
-      <a href="deliveries.php">🚚 Deliveries</a>
+      <a href="supplier_delivery.php">🚚 Deliveries</a>
       <a href="linked_stores.php">🏬 Linked Stores</a>
       <a href="supplier_reports.php">📊 Reports</a>
       <a href="settings.php">⚙️ Settings</a>

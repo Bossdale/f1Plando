@@ -64,7 +64,7 @@ while ($row = mysqli_fetch_assoc($productResult)) {
       <img src="logo.png" class="logo mb-3" alt="Logo">
       <a href="supplier_dashboard.php">🏠 Dashboard</a>
       <a href="supplier_products.php">📦 My Products</a>
-      <a href="deliveries.php">🚚 Deliveries</a>
+      <a href="supplier_delivery.php">🚚 Deliveries</a>
       <a href="linked_stores.php">🏬 Linked Stores</a>
       <a href="supplier_reports.php">📊 Reports</a>
       <a href="settings.php">⚙️ Settings</a>
