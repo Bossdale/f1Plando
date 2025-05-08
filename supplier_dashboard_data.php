@@ -1,7 +1,11 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-session_start();
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 
 include __DIR__ . '/connect.php';
 
@@ -19,7 +23,6 @@ $firstName = $_SESSION['firstname'];
 $fromDate = $_GET['fromDate'] ?? null;
 $toDate = $_GET['toDate'] ?? null;
 
-// Helper for date filtering
 function getDateCondition($fromDate, $toDate, $dateColumn = 'o.orderDate') {
     $condition = '';
     if ($fromDate && $toDate) {
@@ -32,16 +35,11 @@ function getDateCondition($fromDate, $toDate, $dateColumn = 'o.orderDate') {
     return $condition;
 }
 
-// 1. Total Supplied Products
-$totalSuppliedProducts = 0;
 $stmt = $connection->prepare("SELECT COUNT(*) AS total FROM tblProduct WHERE supplierID = ?");
 $stmt->bind_param("i", $supplierID);
 $stmt->execute();
-$result = $stmt->get_result()->fetch_assoc();
-$totalSuppliedProducts = $result['total'];
+$totalSuppliedProducts = $stmt->get_result()->fetch_assoc()['total'];
 
-// 2. Total Stores Served
-$totalStores = 0;
 $query = "
     SELECT COUNT(DISTINCT i.ownerID) AS totalStores
     FROM tblInventory i
@@ -49,15 +47,12 @@ $query = "
     WHERE p.supplierID = ?
 ";
 
-
 $stmt = $connection->prepare($query);
 $stmt->bind_param("i", $supplierID);
 $stmt->execute();
-$result = $stmt->get_result()->fetch_assoc();
-$totalStores = $result['totalStores'];
+$totalStores = $stmt->get_result()->fetch_assoc()['totalStores'];
 
 // 3. Last Delivery Date
-$lastDeliveryDate = 'N/A';
 $query = "
     SELECT MAX(o.orderDate) AS lastDelivery
     FROM tblOrder o
@@ -68,16 +63,16 @@ $query = "
 $stmt = $connection->prepare($query);
 $stmt->bind_param("i", $supplierID);
 $stmt->execute();
-$result = $stmt->get_result()->fetch_assoc();
-$lastDeliveryDate = $result['lastDelivery'] ?? 'N/A';
+
+$lastDeliveryDate = $stmt->get_result()->fetch_assoc()['lastDelivery'] ?? 'N/A';
+
 
 // 4. Recent Deliveries
 $recentDeliveries = [];
 $query = "
-    SELECT 
-    o.orderDate AS delivery_date,
-    ow.storeName AS store_name,
-    COUNT(oi.orderItemID) AS items
+
+    SELECT o.orderDate AS delivery_date, ow.storeName AS store_name, COUNT(oi.orderItemID) AS items
+
     FROM tblOrder o
     JOIN tblOrderItems oi ON o.orderID = oi.orderID
     JOIN tblProduct p ON oi.productID = p.productID
@@ -94,10 +89,11 @@ $stmt->execute();
 $recentDeliveries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // 5. Most Delivered Products
-//$topDeliveredProducts = ['labels' => [], 'values' => []];
+
 $topDeliveredProducts = [];
 $query = "
-    SELECT p.productName, SUM(oi.quantity) AS quantity
+    SELECT p.productName AS name, SUM(oi.quantity) AS quantity
+
     FROM tblOrderItems oi
     JOIN tblProduct p ON oi.productID = p.productID
     JOIN tblOrder o ON oi.orderID = o.orderID
@@ -111,10 +107,12 @@ $paramTypes = "i";
 $params = [$supplierID];
 if ($fromDate && $toDate) {
     $paramTypes .= "ss";
-    array_push($params, $fromDate, $toDate);
+
+    $params[] = $fromDate;
+    $params[] = $toDate;
 } elseif ($fromDate || $toDate) {
     $paramTypes .= "s";
-    array_push($params, $fromDate ?? $toDate);
+    $params[] = $fromDate ?? $toDate;
 }
 
 $stmt = $connection->prepare($query);
@@ -139,7 +137,6 @@ $query = "
     GROUP BY DATE(o.orderDate)
     ORDER BY DATE(o.orderDate)
 ";
-
 $stmt = $connection->prepare($query);
 $stmt->bind_param($paramTypes, ...$params);
 $stmt->execute();
@@ -156,9 +153,9 @@ $query = "
     JOIN tblProduct p ON oi.productID = p.productID
     JOIN tblInventory i ON p.productID = i.productID
     JOIN tblOwner ow ON i.ownerID = ow.ownerID
-    WHERE p.supplierID = ? 
-    -- optional date filter
-    " . getDateCondition($fromDate, $toDate, "o.orderDate") . "
+
+    WHERE p.supplierID = ?" . getDateCondition($fromDate, $toDate, "o.orderDate") . "
+
     GROUP BY ow.ownerID
     ORDER BY total DESC
     LIMIT 5
@@ -174,11 +171,3 @@ while ($row = $result->fetch_assoc()) {
     $topStoresData['labels'][] = $row['storeName'];
     $topStoresData['values'][] = (int)$row['total'];
 }
-
-
-
-// Final Output as JSON (if needed)
-header('Content-Type: application/json');
-echo json_encode($dashboardData);
-exit;
-?>

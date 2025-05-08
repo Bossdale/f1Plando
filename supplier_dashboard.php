@@ -2,20 +2,21 @@
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-
-session_start();
-
-
-include __DIR__ . '/connect.php';
-include __DIR__ . '/supplier_dashboard_data.php'; // Fetches data needed for the dashboard
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Session check
-if (!isset($_SESSION['supplierID']) || !isset($_SESSION['username'])) {
+if (!isset($_SESSION['userID']) || $_SESSION['role'] !== 'supplier') {
+
     header("Location: signin.php");
     exit();
 }
 
-$firstName = $_SESSION['username'];
+include __DIR__ . '/connect.php';
+include __DIR__ . '/supplier_dashboard_data.php';
+
+$firstName = $_SESSION['firstname'];
+
 ?>
 
 <!DOCTYPE html>
@@ -61,6 +62,7 @@ $firstName = $_SESSION['username'];
       height: 100px;
       object-fit: cover;
     }
+
   </style>
 </head>
 <body>
@@ -70,7 +72,7 @@ $firstName = $_SESSION['username'];
     <div class="col-md-2 sidebar p-3">
       <img src="logo.png" class="logo mb-3" alt="Logo">
       <h5><?php echo htmlspecialchars($firstName); ?></h5>
-      <a href="#">🏠 Dashboard</a>
+      <a href="supplier_dashboard.php">🏠 Dashboard</a>
       <a href="supplier_products.php">📦 My Products</a>
       <a href="deliveries.php">🚚 Deliveries</a>
       <a href="linked_stores.php">🏬 Linked Stores</a>

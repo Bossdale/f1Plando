@@ -19,6 +19,7 @@ while ($row = mysqli_fetch_assoc($productResult)) {
   $products[] = $row;
 }
 
+
 $query = "SELECT storeName FROM tblOwner";
     $result = mysqli_query($connection, $query);
     if ($result) {
@@ -29,6 +30,7 @@ $query = "SELECT storeName FROM tblOwner";
 // Fetch suppliers for dropdown
 $supplierQuery = "SELECT supplierID, companyName FROM tblSupplier";
 $supplierResult = mysqli_query($connection, $supplierQuery);
+
 ?>
 
 <!DOCTYPE html>
@@ -382,10 +384,9 @@ $supplierResult = mysqli_query($connection, $supplierQuery);
         <div class="alert alert-info">Product updated successfully!</div>
       <?php elseif (isset($_GET['deleted'])): ?>
         <div class="alert alert-danger">Product deleted permanently!</div>
+      <?php elseif (isset($_GET['bought'])): ?>
+        <div class="alert alert-success">Inventory updated successfully!</div>
       <?php endif; ?>
-
-      <!-- Add Product Button -->
-      <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#productModal" id="addProductBtn">➕ Add Product</button>
 
       <!-- Product Table -->
       <table class="table table-bordered table-striped" style="margin-bottom: 100px;">
@@ -423,6 +424,7 @@ $supplierResult = mysqli_query($connection, $supplierQuery);
                 <button class="btn btn-sm btn-delete btn-action"
                         onclick="confirmDelete(<?= $product['productID'] ?>, '<?= htmlspecialchars($product['productName']) ?>')">
                   🗑️
+
                 </button>
               </td>
             </tr>
@@ -518,37 +520,20 @@ $supplierResult = mysqli_query($connection, $supplierQuery);
   </div>
 
 
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-const addBtn = document.getElementById('addProductBtn');
-const modal = new bootstrap.Modal(document.getElementById('productModal'));
-const form = document.getElementById('productForm');
+  document.querySelectorAll('.buyProductBtn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      document.getElementById('buyProductID').value = this.dataset.id;
+      document.getElementById('buyProductName').textContent = this.dataset.name;
+      document.getElementById('quantity').value = '';
+      document.getElementById('unit').value = '';
 
-addBtn.addEventListener('click', function () {
-  document.getElementById('modalTitle').innerText = "Add Product";
-  document.getElementById('submitBtn').innerText = "Save";
-  form.action = 'owner_product_action.php';
-  form.reset();
-  document.getElementById('productID').value = '';
-});
-
-document.querySelectorAll('.editProductBtn').forEach(button => {
-  button.addEventListener('click', function () {
-    document.getElementById('modalTitle').innerText = "Edit Product";
-    document.getElementById('submitBtn').innerText = "Update";
-    form.action = 'owner_product_action.php';
-
-    document.getElementById('productID').value = this.dataset.id;
-    document.getElementById('productName').value = this.dataset.name;
-    document.getElementById('category').value = this.dataset.category;
-    document.getElementById('costPrice').value = this.dataset.cost;
-    document.getElementById('sellingPrice').value = this.dataset.price;
-    document.getElementById('supplierID').value = this.dataset.supplierid;
-    document.getElementById('description').value = this.dataset.description;
-
-    modal.show();
+      const modal = new bootstrap.Modal(document.getElementById('buyModal'));
+      modal.show();
+    });
   });
-});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
