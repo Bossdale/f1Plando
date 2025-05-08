@@ -2,7 +2,9 @@
 <?php
     include __DIR__ . '/connect.php';
     include __DIR__ . '/readrecords.php';
-    $userName = "User";
+
+    $userName = "User"; 
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,13 +23,12 @@
     min-height: 100vh;
     margin: 0;
   }
- 
   html, body {
     height: 100%;
     margin: 0;
     overflow: hidden; /* Prevents double scrollbars */
   }
- 
+
   .header-bar {
     background: linear-gradient(to right, #732015, #af3222);
     color: white;
@@ -41,7 +42,7 @@
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     opacity: 1;
   }
- 
+
   .sidebar {
     /* background: linear-gradient(to right, rgba(115, 32, 21, 0.4), rgba(175, 50, 34, 0.4)); */
     backdrop-filter: blur(50px);
@@ -61,8 +62,7 @@
     overflow-y: hidden !important;
     overscroll-behavior: none;
 }
- 
- 
+
   .sidebar a {
     color: maroon;
     text-decoration: none;
@@ -72,12 +72,12 @@
     margin-bottom: 5px;
     transition: background 0.3s;
   }
- 
+
   .sidebar a:hover, .sidebar a.fw-bold {
     background-color: rgba(139, 0, 0, 0.52);
     color: white;
   }
- 
+
   .header-card {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(10px);
@@ -87,25 +87,25 @@
     border-radius: 20px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   }
- 
+
   .section-title {
     margin: 20px 0 10px;
     font-weight: bold;
     color: #732015;
   }
- 
+
   .filter-form {
     margin-bottom: 30px;
     display: flex;
     gap: 10px;
     align-items: center;
   }
- 
+
   .filter-form input,
   .filter-form button {
     border-radius: 10px;
   }
- 
+
   .filter-form button {
     background: linear-gradient(to right, #e39363, #af3222);
     border: none;
@@ -115,11 +115,11 @@
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     transition: background 0.3s ease;
   }
- 
+
   .filter-form button:hover {
     background: linear-gradient(to right, #af3222, #732015);
   }
- 
+
   .logo {
     border-radius: 50%;
     width: 80px;
@@ -128,18 +128,18 @@
     margin-bottom: 15px;
     align-self: center;
   }
- 
+
   table {
     border-radius: 10px;
     overflow: hidden;
   }
- 
+
   canvas {
     background: rgba(255, 255, 255, 0.6);
     border-radius: 10px;
     padding: 10px;
   }
- 
+
   .top-header {
     background: linear-gradient(to right, #af3222, #732015);
     color: white;
@@ -149,27 +149,28 @@
     z-index: 1100;
     border-bottom: 1px solid rgba(255,255,255,0.2);
   }
- 
+
   .navbar-nav .nav-link {
     color: white !important;
     font-weight: 500;
     transition: opacity 0.3s;
   }
- 
+
+
   .navbar-nav .nav-link:hover {
     opacity: 0.8;
   }
- 
+
   .container-fluid {
     height: 100%;
   }
- 
+
+
   .d-flex.flex-row.min-vh-100 {
     height: 100%;
     overflow: hidden;
   }
- 
- 
+
   #toggleSidebar {
     background: rgba(255,255,255,0.3);
     color: #fff;
@@ -178,22 +179,23 @@
     border-radius: 8px;
     transition: background 0.3s;
   }
- 
+
+
   #toggleSidebar:hover {
     background: rgba(255,255,255,0.5);
   }
- 
+
   /* Sidebar hide/show */
   .sidebar-hidden {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
   }
- 
+
   .sidebar.collapsed {
     width: 0;
     padding: 0;
   }
- 
+
   .main-content {
     transition: all 0.3s ease;
     min-height: 100vh;
@@ -205,22 +207,22 @@
     height: 100%;
     padding: 1rem;
   }
- 
+
   .main-content.expanded {
     margin-left: 0;
     width: 100%;
   }
- 
+
   .container-fluid{
     margin: 0;
     padding: 0;
   }
- 
+
   .store-name {
     text-align: center;
     width: 100%;
   }
- 
+
   .glassy {
     background: rgba(255, 255, 255, 0.2);  /* translucent white */
     border-radius: 10px;
@@ -232,9 +234,7 @@
     color: #000; /* or white depending on background */
     text-align: center;
   }
- 
-</style>
- 
+
 </head>
 <body>
 <div class="container-fluid">
@@ -252,7 +252,7 @@
       </ul>
     </div>
   </nav>
- 
+
   <div class="d-flex flex-row min-vh-100">
     <!-- Sidebar -->
     <div class="sidebar d-flex flex-column" id="sidebar">
@@ -269,13 +269,13 @@
       <a href="owner_settings.php"><i class="fas fa-cog"></i> Settings</a>
       <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
- 
+
     <!-- Main Content -->
     <div class="main-content p-4 flex-grow-1" id="mainContent">
       <div class="mb-3">
         <h3 class="fw-bold text-dark">Welcome, <?php echo $firstName; ?>!</h3>
       </div>
- 
+
       <form class="filter-form">
         <label for="fromDate">Date From:</label>
         <input type="date" class="form-control form-control-sm" id="fromDate" name="fromDate">
@@ -283,7 +283,7 @@
         <input type="date" class="form-control form-control-sm" id="toDate" name="toDate">
         <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
       </form>
- 
+
       <div class="row g-3 mb-4">
         <div class="col-md-3">
           <div class="header-card text-center">
@@ -310,7 +310,7 @@
           </div>
         </div>
       </div>
- 
+
       <!-- Low Stock Table -->
       <div class="row g-4">
         <div class="col-md-6">
@@ -331,7 +331,7 @@
             </tbody>
           </table>
         </div>
- 
+
         <div class="col-md-6">
           <h6 class="section-title">Recent Orders</h6>
           <table class="table table-bordered">
@@ -350,8 +350,10 @@
           </table>
         </div>
       </div>
- 
-      <div class="row g-4 mt-4">
+
+
+      <div class="row g-4 mt-4" style="margin-bottom: 100px;">
+
         <div class="col-md-6">
           <h6 class="section-title">Sales Overview</h6>
           <canvas id="salesChart"></canvas>
@@ -368,7 +370,7 @@
 <script>
   const salesData = <?php echo json_encode($salesData); ?>;
   const topProductsData = <?php echo json_encode($topProductsData); ?>;
- 
+
   // Sales Overview Chart
   new Chart(document.getElementById('salesChart'), {
     type: 'line',
@@ -402,7 +404,7 @@
       }
     }
   });
- 
+
   // Top Products Chart
   new Chart(document.getElementById('productChart'), {
     type: 'bar',
@@ -434,19 +436,20 @@
         }
       }
     }
+
   });
 </script>
- 
+
 <!-- SIDE BAR -->
 <script>
   document.getElementById("toggleSidebar").addEventListener("click", function () {
     const sidebar = document.getElementById("sidebar");
     const mainContent = document.getElementById("mainContent");
- 
+
     sidebar.classList.toggle("collapsed");
     mainContent.classList.toggle("expanded");
   });
 </script>
- 
+
 </body>
 </html>
