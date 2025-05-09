@@ -333,11 +333,14 @@ $query = "SELECT storeName FROM tblOwner";
     <!-- Main Content -->
     <div class="main-content p-4 flex-grow-1" id="mainContent">
            
-            <!-- Add Button -->
-            <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addModal">➕ Add Customer</button>
+           <!-- Add Button -->
+            <button class="btn mb-3 text-white font-semibold rounded-md shadow-md py-2 px-4 transition duration-300"
+                style="background: linear-gradient(to right, #e39363, #af3222);" data-bs-toggle="modal" data-bs-target="#addModal">
+                ➕ Add Customer
+            </button>
 
             <!-- Table -->
-            <table class="table table-bordered table-striped">
+            <table class="table table-bordered table-striped" style="margin-bottom: 100px;">
                 <thead class="table-light">
                     <tr>
                         <th>Name</th>
@@ -355,16 +358,19 @@ $query = "SELECT storeName FROM tblOwner";
                                 <td>₱<?= number_format($cust['totalDebt'], 2) ?></td>
                                 <td>
                                     <button class="btn btn-sm btn-warning editBtn"
+                                            style="background: #e39363"
                                             data-id="<?= $cust['customerID'] ?>"
                                             data-name="<?= htmlspecialchars($cust['fullName']) ?>"
                                             data-contact="<?= htmlspecialchars($cust['contactNumber']) ?>"
                                             data-debt="<?= $cust['totalDebt'] ?>"
                                             data-bs-toggle="modal" data-bs-target="#editModal">✏️</button>
-                                            <button class="btn btn-sm btn-danger"
+                                            <button class="btn btn-sm text-white font-semibold rounded-md shadow-md py-1 px-3 transition duration-300"
+                                                style="background:rgb(150, 43, 29);"
                                                 onclick="confirmDelete(<?= $cust['customerID'] ?>, '<?= htmlspecialchars($cust['fullName']) ?>')"
                                                 data-bs-toggle="modal" data-bs-target="#deleteModal">
                                                 🗑️
                                             </button>
+
 
                                 </td>
                             </tr>
@@ -380,7 +386,7 @@ $query = "SELECT storeName FROM tblOwner";
 
 <!-- Add Customer Modal -->
 <div class="modal fade" id="addModal" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <form method="post" action="owner_customer_action.php" class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Add Customer</h5>
@@ -401,7 +407,7 @@ $query = "SELECT storeName FROM tblOwner";
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-success" type="submit">Add</button>
+        <button class="btn btn-success" style="background-color: #af3222; border-color: #af3222;" type="submit">Add</button>
       </div>
     </form>
   </div>
@@ -409,7 +415,7 @@ $query = "SELECT storeName FROM tblOwner";
 
 <!-- Edit Customer Modal -->
 <div class="modal fade" id="editModal" tabindex="-1">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <form method="post" action="owner_customer_action.php" class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Edit Customer</h5>
@@ -431,7 +437,7 @@ $query = "SELECT storeName FROM tblOwner";
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-primary" type="submit">Save Changes</button>
+        <button class="btn btn-primary" style="background-color: #af3222; border-color: #af3222;" type="submit">Save Changes</button>
       </div>
     </form>
   </div>
@@ -439,10 +445,10 @@ $query = "SELECT storeName FROM tblOwner";
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <form method="GET" action="owner_customer_action.php" class="modal-content">
       <input type="hidden" name="delete" id="deleteCustomerID">
-      <div class="modal-header bg-danger text-white">
+      <div class="modal-header text-white" style="background-color: #af3222; border-color: #af3222;">
         <h5 class="modal-title">Confirm Deletion</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -452,7 +458,7 @@ $query = "SELECT storeName FROM tblOwner";
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <button type="submit" class="btn btn-danger" style="background-color: #af3222; border-color: #af3222;">Yes, Delete</button>
       </div>
     </form>
   </div>

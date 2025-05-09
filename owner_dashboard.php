@@ -1,4 +1,3 @@
-<!-- Keep the PHP part as-is -->
 <?php
     include __DIR__ . '/connect.php';
     include __DIR__ . '/readrecords.php';
@@ -449,4 +448,6 @@
 </script>
 
 </body>
+
 </html>
+

@@ -511,20 +511,7 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
             </div>
 
             <h4 class="mt-4">Customer List</h4>
-            <style>
-                /* Container to constrain height and enable scrolling */
-                .table-wrapper {
-                    max-height: 400px;       /* adjust to whatever height you need */
-                    overflow-y: auto;
-                }
-                /* Make the header stick to the top of the scrolling container */
-                .table-wrapper thead th {
-                    position: sticky;
-                    top: 0;
-                    background-color: #f8f9fa; /* match your .table-light bg */
-                    z-index: 10;               /* ensure it sits above the body rows */
-                }
-                </style>
+
             <table class="table table-bordered table-striped">
                 <thead class="table-light">
                     <tr>
@@ -666,10 +653,6 @@ fetch(`get_orders.php?customer_id=${customerId}`)
     tbody.innerHTML = `
       <tr><td colspan="4">Error loading orders: ${error.message}</td></tr>`;
     totalAmountElem.textContent = '0.00';
-  });
-
-        });
-    });
 });
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -766,3 +749,4 @@ fetch(`get_orders.php?customer_id=${customerId}`)
     });
   });
 </script>
+
