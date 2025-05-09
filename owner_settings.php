@@ -325,7 +325,7 @@
       <button class="btn btn-light me-3" id="toggleSidebar">
         <i class="fas fa-bars"></i>
       </button>
-      <span class="fs-4 fw-bold text-white">INVENTORY</span>
+      <span class="fs-4 fw-bold text-white">SETTINGS</span>
       <ul class="navbar-nav flex-row gap-3 align-items-center">
         <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-user"></i> Profile</a></li>
         <li class="nav-item"><a class="nav-link text-white" href="#"><i class="fas fa-info-circle"></i> About</a></li>
@@ -347,7 +347,6 @@
       <a href="owner_customer.php"><i class="fas fa-users"></i> Customers</a>
       <a href="owner_order.php"><i class="fas fa-receipt"></i> Orders</a>
       <a href="owner_supplier.php"><i class="fas fa-truck"></i> Suppliers</a>
-      <a href="owner_settings.php"class="fw-bold"><i class="fas fa-cog"></i> Settings</a>
       <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 

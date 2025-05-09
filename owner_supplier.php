@@ -289,7 +289,6 @@ $storeName= $row['storeName'];
       <a href="owner_customer.php"><i class="fas fa-users"></i> Customers</a>
       <a href="owner_order.php"><i class="fas fa-receipt"></i> Orders</a>
       <a href="owner_supplier.php" class="fw-bold"><i class="fas fa-truck"></i> Suppliers</a>
-      <a href="owner_settings.php"><i class="fas fa-cog"></i> Settings</a>
       <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 

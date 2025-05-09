@@ -67,7 +67,14 @@
                             class="w-full py-2 px-4 text-white font-semibold rounded-md shadow-md transition duration-300 hover:opacity-90"
                             style="background: linear-gradient(to right, #800000, #6a0000, #4b0000);">
                             Sign In
-                        </button>
+                         </button>
+
+                        <div class="mt-4 text-center">
+                            <a href="register.php"
+                            class="inline-block w-full py-2 px-4 border border-red-700 text-red-700 font-semibold rounded-md transition duration-300 hover:bg-red-100 hover:border-red-800">
+                                Register
+                            </a>
+                        </div>
                     </form>
                 </div>
             </div>

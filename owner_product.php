@@ -365,12 +365,11 @@ $supplierResult = mysqli_query($connection, $supplierQuery);
           <h4><?php echo $storeName; ?></h4>
         </div>
       <a href="owner_dashboard.php"><i class="fas fa-boxes"></i> Dashboard</a>
-      <a href="owner_inventory.php"><i class="fas fa-tags"> </i> Inventory</a>
-      <a href="owner_product.php" class="fw-bold"><i class="fas fa-chart-line"></i> Products</a>
+      <a href="owner_inventory.php"><i class="fas fa-chart-line"></i> Inventory</a>
+      <a href="owner_product.php" class="fw-bold"><i class="fas fa-tags"></i> Products</a>
       <a href="owner_customer.php"><i class="fas fa-users"></i> Customers</a>
       <a href="owner_order.php"><i class="fas fa-receipt"></i> Orders</a>
       <a href="owner_supplier.php"><i class="fas fa-truck"></i> Suppliers</a>
-      <a href="owner_settings.php"><i class="fas fa-cog"></i> Settings</a>
       <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 

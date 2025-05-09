@@ -78,10 +78,14 @@ if ($result && $result->num_rows === 1) {
         }
         exit();
     } else {
-        echo "Incorrect password.";
+        $_SESSION['error'] = "Invalid password. Please try again.";
+        header("Location: signin.php");
+        exit();
     }
 } else {
-    echo "User not found.";
+    $_SESSION['error'] = "User not found.";
+    header("Location: signin.php");
+    exit();
 }
 
 // Close statement and connection

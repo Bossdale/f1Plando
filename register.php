@@ -262,9 +262,9 @@ mysqli_close($conn);
         }
     </script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-xl">
-        <h2 class="text-2xl font-semibold mb-6 text-center text-gray-800">Register</h2>
+<body class="bg-cover bg-center min-h-screen flex items-center justify-center" style="background-image: url('storestock_bg.jpg');">
+    <div class="bg-white bg-opacity-90 p-10 rounded-xl shadow-2xl w-full max-w-4xl my-20">
+        <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Register</h2>
         <form method="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>">
 
             <!-- First and Last Name -->
@@ -364,14 +364,18 @@ mysqli_close($conn);
             <?php endif; ?>
 
             <!-- Submit Button -->
-            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">Register</button>
+            <button 
+            type="submit" 
+            class="w-full py-2 px-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50"
+            style="background: linear-gradient(to right, #800000, #6a0000, #4b0000);">>
+            Register
+        </button>
         </form>
 
         <!-- Login Redirect -->
         <p class="text-center mt-4 text-gray-600 text-sm">
-            Already have an account? <a href="signin.php" class="text-blue-500 hover:text-blue-700 font-semibold">Login</a>
+            Already have an account? <a href="signin.php" class="text-red-500 hover:text-blue-700 font-semibold">Login</a>
         </p>
     </div>
 </body>
 </html>
-
