@@ -4,10 +4,10 @@ include __DIR__ . '/connect.php';
 session_start();
 
 // Check if user is logged in and get their ID
-if (!isset($_SESSION['userID'])) {
+if ( ! isset($_SESSION['userID']) ) {
     // Redirect to login page if not logged in
-    header("Location: login.php");
-    exit();
+    header('Location: signin.php');
+    exit;
 }
 $currentUserID = $_SESSION['userID'];
 
@@ -265,15 +265,34 @@ if ($stmt_customers) {
 
 // Fetch all products for the dropdown
 $products = [];
-$sql_products = "SELECT productID, productName, sellingPrice FROM tblproduct";
-$result_products = $connection->query($sql_products);
-if ($result_products) {
-    while ($row_product = $result_products->fetch_assoc()) {
-        $products[] = $row_product;
+$sql_products = "
+    SELECT
+        i.productID,
+        p.productName,
+        p.sellingPrice
+    FROM tblinventory AS i
+    INNER JOIN tblproduct AS p
+        ON i.productID = p.productID
+    INNER JOIN tblowner AS o
+        ON i.ownerID = o.ownerID
+    WHERE o.userID = ?
+";
+
+if ($stmt = $connection->prepare($sql_products)) {
+    $stmt->bind_param('i', $currentUserID);
+    if ($stmt->execute()) {
+        $result = $stmt->get_result();
+        $products = [];
+        while ($row = $result->fetch_assoc()) {
+            $products[] = $row;
+        }
+        $result->free();
+    } else {
+        $add_customer_error .= ' Error executing inventory query: ' . $stmt->error;
     }
-    $result_products->free();
+    $stmt->close();
 } else {
-    $add_customer_error .= " Error fetching products: " . $connection->error;
+    $add_customer_error .= ' Error preparing inventory query: ' . $connection->error;
 }
 
 // Replace with actual user authentication logic to get the user's name
@@ -492,6 +511,7 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
             </div>
 
             <h4 class="mt-4">Customer List</h4>
+
             <table class="table table-bordered table-striped">
                 <thead class="table-light">
                     <tr>
@@ -509,19 +529,132 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
                                 <td><?php echo htmlspecialchars($customer['contactNumber']); ?></td>
                                 <td>₱<?php echo number_format($customer['totalDebt'], 2); ?></td>
                                 <td>
-                                    <a href="customer_edit.php?id=<?php echo $customer['customerID']; ?>" class="btn btn-sm btn-warning">✏️</a>
-                                    <a href="customer_delete.php?id=<?php echo $customer['customerID']; ?>" class="btn btn-sm btn-danger">🗑️</a>
+                                    <button 
+                                        type="button" 
+                                        class="btn btn-sm btn-warning view-order-btn"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#orderModal"
+                                        data-customer-id="<?php echo $customer['customerID']; ?>"
+                                        data-customer-name="<?php echo htmlspecialchars($customer['fullName']); ?>"
+                                        data-contact-number="<?php echo htmlspecialchars($customer['contactNumber']); ?>"
+                                    >
+                                        View Orders
+                                    </button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
+
+
                     <?php else: ?>
                         <tr><td colspan="4">No customers added yet.</td></tr>
                     <?php endif; ?>
+
+                    
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderModalLabel"><span id="customerName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Contact Number:</strong> <span id="modalContactNumber"></span>
+                    </div>
+                </div>
+                <h5>Order Items</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Product Name</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total Price</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderItemsBody">
+                        <!-- Order items will be populated here -->
+                    </tbody>
+                </table>
+                <div class="text-end">
+                    <h5>Total Amount: ₱<span id="totalAmount">0.00</span></h5>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('orderModal');
+    const viewOrderBtns = document.querySelectorAll('.view-order-btn');
+    
+    viewOrderBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const customerId = this.dataset.customerId;
+            const customerName = this.dataset.customerName;
+            const contactNumber = this.dataset.contactNumber;
+            
+            // Set customer info in modal
+            document.getElementById('customerName').textContent = customerName;
+            document.getElementById('modalContactNumber').textContent = contactNumber;
+            
+            // Clear previous data
+            const tbody           = document.getElementById('orderItemsBody');
+const totalAmountElem = document.getElementById('totalAmount');
+
+fetch(`get_orders.php?customer_id=${customerId}`)
+  .then(response => {
+    if (!response.ok) 
+      throw new Error(`Network response was not ok (${response.status})`);
+    return response.json();
+  })
+  .then(data => {
+    tbody.innerHTML = '';           // clear any old rows
+    let totalAmount = 0;
+
+    if (!Array.isArray(data) || data.length === 0) {
+      tbody.innerHTML = `
+        <tr><td colspan="4">No orders found for this customer</td></tr>`;
+      totalAmountElem.textContent = '0.00';
+      return;
+    }
+
+    data.forEach(item => {
+      const subtotal = item.quantity * item.priceAtPurchase;
+      totalAmount += subtotal;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${item.productName}</td>
+        <td>${item.quantity}</td>
+        <td>${item.priceAtPurchase.toFixed(2)}</td>
+        <td>${subtotal.toFixed(2)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    totalAmountElem.textContent = totalAmount.toFixed(2);
+  })
+  .catch(error => {
+    console.error('Error fetching orders:', error);
+    tbody.innerHTML = `
+      <tr><td colspan="4">Error loading orders: ${error.message}</td></tr>`;
+    totalAmountElem.textContent = '0.00';
+});
+</script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <div id="orderItemsContainer">
   <div class="row mb-3 order-item" data-row-id="0">
@@ -555,10 +688,15 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
 
     // ✅ Delegate remove buttons for deleting rows
     container.addEventListener('click', e => {
-      if (!e.target.classList.contains('remove-item-btn')) return;
-      const row = e.target.closest('.order-item');
-      if (row) row.remove();
-    });
+    if (!e.target.classList.contains('remove-item-btn')) return;
+
+    const rows = container.querySelectorAll('.order-item');
+    if (rows.length <= 1) return; // Prevent removal if only one row remains
+
+    const row = e.target.closest('.order-item');
+    if (row) row.remove();
+});
+
 
     // ✅ Add Item button
     addBtn.addEventListener('click', () => {
@@ -611,3 +749,4 @@ $userName = $_SESSION['firstname'] ?? "User"; // Example user name
     });
   });
 </script>
+
