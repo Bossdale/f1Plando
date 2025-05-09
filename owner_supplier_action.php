@@ -10,8 +10,25 @@ if (!$connection) {
 if (isset($_POST['add_supplier'])) {
   $supplierID = mysqli_real_escape_string($connection, $_POST['userID']);
   $contactPerson = mysqli_real_escape_string($connection, $_POST['contactPerson']);
-  
-  // Update the existing supplier entry with contact person and last delivery date
+
+  // Check if supplier already added (has at least one order)
+  $checkQuery = "
+    SELECT 1
+    FROM tblSupplier s
+    JOIN tblproduct p ON s.supplierID = p.supplierID
+    JOIN tblorderitems oi ON p.productID = oi.productID
+    JOIN tblorder o ON oi.orderID = o.orderID
+    WHERE s.supplierID = '$supplierID'
+    LIMIT 1
+  ";
+  $checkResult = mysqli_query($connection, $checkQuery);
+
+  if (mysqli_num_rows($checkResult) > 0) {
+    header("Location: owner_supplier.php?error=already_added");
+    exit;
+  }
+
+  // Update contact person and last delivery date
   $updateQuery = "UPDATE tblSupplier 
                   SET contactPerson = '$contactPerson', lastDeliveryDate = CURRENT_DATE 
                   WHERE supplierID = '$supplierID'";
@@ -27,7 +44,7 @@ if (isset($_POST['add_supplier'])) {
 // Delete Supplier
 if (isset($_POST['delete_supplier_id'])) {
   $supplierID = mysqli_real_escape_string($connection, $_POST['delete_supplier_id']);
-  
+
   $deleteQuery = "DELETE FROM tblSupplier WHERE supplierID = '$supplierID'";
   if (mysqli_query($connection, $deleteQuery)) {
     header("Location: owner_supplier.php?success=deleted");

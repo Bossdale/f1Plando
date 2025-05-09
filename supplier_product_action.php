@@ -8,64 +8,91 @@ if (!$connection) {
     die("Connection failed: " . mysqli_connect_error());
 }
 
-$supplierID = $_SESSION['userID'];
-
-// Add Delivery (store product for selected store owner)
-if (isset($_POST['addDelivery'])) {
-    $storeName = $_POST['storeName'];
+// Add product
+if (isset($_POST['addProduct'])) {
+    $userID = $_SESSION['userID'];
     $productName = $_POST['productName'];
-    $quantity = $_POST['quantity'];
+    $category = $_POST['category'];
+    $costPrice = $_POST['costPrice'];
+    $sellingPrice = $_POST['sellingPrice'];
+    $description = $_POST['description'];
 
-    // Fetch ownerID from store name
-    $ownerQuery = "SELECT ownerID FROM tblowner WHERE storeName = ?";
-    $stmtOwner = mysqli_prepare($connection, $ownerQuery);
-    mysqli_stmt_bind_param($stmtOwner, "s", $storeName);
-    mysqli_stmt_execute($stmtOwner);
-    mysqli_stmt_bind_result($stmtOwner, $ownerID);
-    mysqli_stmt_fetch($stmtOwner);
-    mysqli_stmt_close($stmtOwner);
+    // Get the supplierID using the logged-in userID
+    $supplierQuery = "SELECT supplierID FROM tblsupplier WHERE userID = ?";
+    $stmtSupplier = mysqli_prepare($connection, $supplierQuery);
+    if ($stmtSupplier) {
+        mysqli_stmt_bind_param($stmtSupplier, "i", $userID);
+        mysqli_stmt_execute($stmtSupplier);
+        mysqli_stmt_bind_result($stmtSupplier, $supplierID);
+        if (mysqli_stmt_fetch($stmtSupplier)) {
+            mysqli_stmt_close($stmtSupplier);
 
-    if (!$ownerID) {
-        die("Store owner not found.");
-    }
-
-    // Insert product to tblproduct if not already exists (check by supplierID + productName)
-    $checkProductQuery = "SELECT productID FROM tblproduct WHERE supplierID = ? AND productName = ?";
-    $stmtCheck = mysqli_prepare($connection, $checkProductQuery);
-    mysqli_stmt_bind_param($stmtCheck, "is", $supplierID, $productName);
-    mysqli_stmt_execute($stmtCheck);
-    mysqli_stmt_store_result($stmtCheck);
-
-    if (mysqli_stmt_num_rows($stmtCheck) == 0) {
-        // Insert new product to tblproduct
-        $insertProductQuery = "INSERT INTO tblproduct (supplierID, productName, category, costPrice, sellingPrice, description, isActive)
-                               VALUES (?, ?, '', 0, 0, '', 1)";
-        $stmtInsert = mysqli_prepare($connection, $insertProductQuery);
-        mysqli_stmt_bind_param($stmtInsert, "is", $supplierID, $productName);
-        mysqli_stmt_execute($stmtInsert);
-        $productID = mysqli_insert_id($connection);
-        mysqli_stmt_close($stmtInsert);
+            // Now insert the product using the correct supplierID
+            $insertQuery = "INSERT INTO tblproduct (supplierID, productName, category, costPrice, sellingPrice, description, isActive)
+                            VALUES (?, ?, ?, ?, ?, ?, 1)";
+            $stmt = mysqli_prepare($connection, $insertQuery);
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "issdds", $supplierID, $productName, $category, $costPrice, $sellingPrice, $description);
+                if (mysqli_stmt_execute($stmt)) {
+                    header("Location: supplier_products.php?added=1");
+                    exit();
+                } else {
+                    echo "Error executing insert query: " . mysqli_stmt_error($stmt);
+                }
+            } else {
+                echo "Error preparing insert statement: " . mysqli_error($connection);
+            }
+        } else {
+            echo "Supplier not found for this user.";
+        }
     } else {
-        // Get existing productID
-        mysqli_stmt_bind_result($stmtCheck, $productID);
-        mysqli_stmt_fetch($stmtCheck);
+        echo "Error preparing supplier lookup: " . mysqli_error($connection);
     }
-    mysqli_stmt_close($stmtCheck);
+}
 
-    // Insert into inventory for the owner
-    $unit = "pcs"; // default
-    $reorderLevel = 5;
-    $insertInventoryQuery = "INSERT INTO tblinventory (productID, ownerID, quantity, unit, reorderLevel, lastUpdated)
-                             VALUES (?, ?, ?, ?, ?, NOW())";
-    $stmtInventory = mysqli_prepare($connection, $insertInventoryQuery);
-    mysqli_stmt_bind_param($stmtInventory, "iiisi", $productID, $ownerID, $quantity, $unit, $reorderLevel);
+// Edit product
+if (isset($_POST['editProduct'])) {
+    $productID = $_POST['productID'];
+    $productName = $_POST['productName'];
+    $category = $_POST['category'];
+    $costPrice = $_POST['costPrice'];
+    $sellingPrice = $_POST['sellingPrice'];
+    $description = $_POST['description'];
 
-    if (mysqli_stmt_execute($stmtInventory)) {
-        header("Location: supplier_delivery.php?added=1");
-        exit();
+    $updateQuery = "UPDATE tblproduct 
+                    SET productName = ?, category = ?, costPrice = ?, sellingPrice = ?, description = ?
+                    WHERE productID = ?";
+    $stmt = mysqli_prepare($connection, $updateQuery);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "ssddsi", $productName, $category, $costPrice, $sellingPrice, $description, $productID);
+        if (mysqli_stmt_execute($stmt)) {
+            header("Location: supplier_products.php?updated=1");
+            exit();
+        } else {
+            echo "Error executing update query: " . mysqli_stmt_error($stmt);
+        }
     } else {
-        echo "Error inserting inventory: " . mysqli_stmt_error($stmtInventory);
+        echo "Error preparing update statement: " . mysqli_error($connection);
     }
-    mysqli_stmt_close($stmtInventory);
+}
+
+// Delete product
+if (isset($_GET['deleteProduct'])) {
+    $productID = $_GET['productID'];
+
+    // SQL query to delete product
+    $deleteQuery = "DELETE FROM tblproduct WHERE productID = ?";
+    $stmt = mysqli_prepare($connection, $deleteQuery);
+    if ($stmt) {
+        mysqli_stmt_bind_param($stmt, "i", $productID);
+        if (mysqli_stmt_execute($stmt)) {
+            header("Location: supplier_products.php?deleted=1");
+            exit();
+        } else {
+            echo "Error executing delete query: " . mysqli_stmt_error($stmt);
+        }
+    } else {
+        echo "Error preparing delete statement: " . mysqli_error($connection);
+    }
 }
 ?>

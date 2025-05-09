@@ -26,6 +26,7 @@ $contactNumber = "";
 $address = "";
 $role = "";
 $storeName = "";
+$storeName_error = "";
 $companyName = "";
 $contactPerson = "";
 $username_error = "";
@@ -348,12 +349,13 @@ mysqli_close($conn);
                 </div>
             </div>
 
-            <!-- Owner Fields (Store Name) -->
-            <div id="ownerFields" style="display:none;" class="mb-4">
+            <!-- Owner-specific fields -->
+            <div id="ownerFields" style="display: <?php echo ($role == 'Owner') ? 'block' : 'none'; ?>;">
                 <label for="storeName" class="block text-gray-700 text-sm font-bold mb-2">Store Name:</label>
                 <input type="text" name="storeName" id="storeName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" value="<?php echo $storeName; ?>">
                 <span class="text-red-500 text-xs italic"><?php echo $storeName_error; ?></span>
             </div>
+
 
             <!-- Register Error Message -->
             <?php if (!empty($register_error)): ?>

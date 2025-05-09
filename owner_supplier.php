@@ -6,20 +6,36 @@ if (!$connection) {
   die("Database connection failed: " . mysqli_connect_error());
 }
 
-// Fetch suppliers
-$supplierQuery = "SELECT s.supplierID, u.firstname, u.lastname, s.companyName, s.contactPerson, s.lastDeliveryDate
-                  FROM tblSupplier s
-                  JOIN tblUser u ON s.userID = u.userID";
+// Fetch suppliers who have placed at least one order
+$supplierQuery = "
+  SELECT DISTINCT s.supplierID, u.firstname, u.lastname, s.companyName, s.contactPerson, s.lastDeliveryDate
+  FROM tblSupplier s
+  JOIN tblUser u ON s.userID = u.userID
+  JOIN tblproduct p ON s.supplierID = p.supplierID
+  JOIN tblorderitems oi ON p.productID = oi.productID
+  JOIN tblorder o ON oi.orderID = o.orderID
+  WHERE o.orderID IS NOT NULL
+";
 $supplierResult = mysqli_query($connection, $supplierQuery);
 $suppliers = [];
 while ($row = mysqli_fetch_assoc($supplierResult)) {
   $suppliers[] = $row;
 }
 
-// Fetch supplier dropdown list
-$dropdownQuery = "SELECT s.supplierID, u.firstname, u.lastname, s.companyName
-                  FROM tblSupplier s
-                  JOIN tblUser u ON s.userID = u.userID";
+// Fetch supplier dropdown list excluding those already listed
+$dropdownQuery = "
+  SELECT s.supplierID, u.firstname, u.lastname, s.companyName
+  FROM tblSupplier s
+  JOIN tblUser u ON s.userID = u.userID
+  WHERE s.supplierID NOT IN (
+    SELECT DISTINCT s2.supplierID
+    FROM tblSupplier s2
+    JOIN tblproduct p ON s2.supplierID = p.supplierID
+    JOIN tblorderitems oi ON p.productID = oi.productID
+    JOIN tblorder o ON oi.orderID = o.orderID
+    WHERE o.orderID IS NOT NULL
+  )
+";
 $dropdownResult = mysqli_query($connection, $dropdownQuery);
 ?>
 <!DOCTYPE html>
@@ -36,7 +52,7 @@ $dropdownResult = mysqli_query($connection, $dropdownQuery);
     }
     .sidebar {
       height: 100vh;
-      background-color:rgb(115, 32, 21);
+      background-color: rgb(115, 32, 21);
       color: white;
     }
     .sidebar a {
@@ -63,7 +79,6 @@ $dropdownResult = mysqli_query($connection, $dropdownQuery);
 <body>
 <div class="container-fluid">
   <div class="row">
-    <!-- Sidebar -->
     <div class="col-md-2 sidebar d-flex flex-column p-3">
       <img src="logo.png" alt="StoreStock Logo" class="logo mb-2">
       <h4 class="text-white">STORESTOCK</h4>
@@ -77,14 +92,19 @@ $dropdownResult = mysqli_query($connection, $dropdownQuery);
       <a href="logout.php">Logout</a>
     </div>
 
-    <!-- Main Content -->
     <div class="col-md-10 p-4">
       <h3 class="mb-4">Suppliers</h3>
 
-      <!-- Add Supplier Button -->
+      <?php if (isset($_GET['error']) && $_GET['error'] === 'already_added'): ?>
+        <div class="alert alert-warning">This supplier is already added.</div>
+      <?php endif; ?>
+
+      <?php if (isset($_GET['success']) && $_GET['success'] === 'added'): ?>
+        <div class="alert alert-success">Supplier added successfully.</div>
+      <?php endif; ?>
+
       <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addSupplierModal">➕ Add Supplier</button>
 
-      <!-- Supplier Table -->
       <table class="table table-bordered table-striped">
         <thead class="table-light">
           <tr>
@@ -107,13 +127,10 @@ $dropdownResult = mysqli_query($connection, $dropdownQuery);
                   <input type="hidden" name="delete_supplier_id" value="<?= $supplier['supplierID'] ?>">
                   <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this supplier?')">🗑️</button>
                 </form>
-          
-                <!-- Inside the Actions column -->
                 <form action="owner_supplier_product_view.php" method="POST" style="display:inline;">
-                  <input type="hidden" name="supplierID" value="<?php echo $supplier['supplierID']; ?>">
+                  <input type="hidden" name="supplierID" value="<?= $supplier['supplierID']; ?>">
                   <button type="submit" class="btn btn-sm btn-info">📦 View Products</button>
                 </form>
-
               </td>
             </tr>
           <?php endforeach; ?>

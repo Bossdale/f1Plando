@@ -9,6 +9,8 @@ if (!$connection) {
 $supplierID = $_SESSION['userID'];
 
 // Fetch deliveries for this supplier
+$supplierID = $_SESSION['userID'];
+
 $deliveryQuery = "
   SELECT 
     p.productName,
@@ -30,22 +32,15 @@ while ($row = mysqli_fetch_assoc($deliveryResult)) {
   $deliveries[] = $row;
 }
 
-// Fetch all store names
-$storeQuery = "SELECT storeName FROM tblowner ORDER BY storeName ASC";
-$storeResult = mysqli_query($connection, $storeQuery);
-$storeNames = [];
-while ($row = mysqli_fetch_assoc($storeResult)) {
-  $storeNames[] = $row['storeName'];
-}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Delivery Management - StoreStock</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Product Management - StoreStock</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
@@ -83,8 +78,7 @@ while ($row = mysqli_fetch_assoc($storeResult)) {
       <a href="supplier_dashboard.php">🏠 Dashboard</a>
       <a href="supplier_products.php">📦 My Products</a>
       <a href="supplier_delivery.php">🚚 Deliveries</a>
-      <a href="linked_stores.php">🏬 Linked Stores</a>
-      <a href="supplier_reports.php">📊 Reports</a>
+      <a href="supplier_stores.php">🏬 Linked Stores</a>
       <a href="settings.php">⚙️ Settings</a>
       <a href="logout.php">🔓 Logout</a>
     </div>
@@ -96,82 +90,95 @@ while ($row = mysqli_fetch_assoc($storeResult)) {
       <!-- Alert messages -->
       <?php if (isset($_GET['added'])): ?>
         <div class="alert alert-success">Product added successfully!</div>
+      <?php elseif (isset($_GET['updated'])): ?>
+        <div class="alert alert-info">Product updated successfully!</div>
+      <?php elseif (isset($_GET['deleted'])): ?>
+        <div class="alert alert-danger">Product deleted permanently!</div>
       <?php endif; ?>
 
-      <!-- Add Delivery Button -->
+      <!-- Add Product Button -->
       <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDeliveryModal">
-          ➕ Add Delivery
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+          ➕ Add Product
         </button>
       </div>
 
-      <table class="table table-bordered table-striped">
-        <thead class="table-light">
-          <tr>
-            <th>Product Name</th>
-            <th>Quantity</th>
-            <th>Date</th>
-            <th>Store Name</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php if (count($deliveries) > 0): ?>
-            <?php foreach ($deliveries as $delivery): ?>
-              <tr>
-                <td><?= htmlspecialchars($delivery['productName']) ?></td>
-                <td><?= (int)$delivery['quantity'] ?></td>
-                <td><?= date('F j, Y', strtotime($delivery['orderDate'])) ?></td>
-                <td><?= htmlspecialchars($delivery['storeName']) ?></td>
-              </tr>
-            <?php endforeach; ?>
-          <?php else: ?>
-            <tr>
-              <td colspan="4" class="text-center">No deliveries found.</td>
-            </tr>
-          <?php endif; ?>
-        </tbody>
-      </table>
+<table class="table table-bordered table-striped">
+  <thead class="table-light">
+    <tr>
+      <th>Product Name</th>
+      <th>Quantity</th>
+      <th>Date</th>
+      <th>Store Name</th>
+    </tr>
+  </thead>
+  <tbody>
+    <?php if (count($deliveries) > 0): ?>
+      <?php foreach ($deliveries as $delivery): ?>
+        <tr>
+          <td><?= htmlspecialchars($delivery['productName']) ?></td>
+          <td><?= (int)$delivery['quantity'] ?></td>
+          <td><?= date('F j, Y', strtotime($delivery['orderDate'])) ?></td>
+          <td><?= htmlspecialchars($delivery['storeName']) ?></td>
+        </tr>
+      <?php endforeach; ?>
+    <?php else: ?>
+      <tr>
+        <td colspan="4" class="text-center">No deliveries found.</td>
+      </tr>
+    <?php endif; ?>
+  </tbody>
+</table>
+
+
     </div>
   </div>
 </div>
 
-<!-- Add Delivery Modal -->
-<div class="modal fade" id="addDeliveryModal" tabindex="-1" aria-hidden="true">
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <form method="POST" action="supplier_delivery_action.php" class="modal-content">
+    <form method="POST" action="supplier_product_action.php" class="modal-content">
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">Add Delivery</h5>
+        <h5 class="modal-title">Add New Product</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <!-- Store Name -->
         <div class="mb-3">
           <label for="storeName" class="form-label">Store Name</label>
-          <select name="storeName" id="storeName" class="form-select" required>
-            <option value="" disabled selected>Select a store</option>
-            <?php foreach ($storeNames as $storeName): ?>
-              <option value="<?= htmlspecialchars($storeName) ?>"><?= htmlspecialchars($storeName) ?></option>
-            <?php endforeach; ?>
-          </select>
+          <input type="text" name="storeName" id="storeName" class="form-control" required>
         </div>
+
+        <!-- Product Name -->
         <div class="mb-3">
           <label for="productName" class="form-label">Product Name</label>
           <input type="text" name="productName" id="productName" class="form-control" required>
         </div>
+
+        <!-- Category -->
         <div class="mb-3">
-          <label for="quantity" class="form-label">Quantity</label>
-          <input type="number" name="quantity" id="quantity" class="form-control" min="1" required>
+          <label for="category" class="form-label">Category</label>
+          <input type="text" name="category" id="category" class="form-control" required>
         </div>
+
+        <!-- Cost Price -->
+        <div class="mb-3">
+          <label for="costPrice" class="form-label">Cost Price</label>
+          <input type="number" name="costPrice" id="costPrice" class="form-control" step="0.01" min="0" required>
+        </div>
+
+        <!-- Hidden Supplier ID -->
+        <input type="hidden" name="supplierID" value="<?= $_SESSION['userID'] ?>">
+
       </div>
       <div class="modal-footer">
-        <button type="submit" name="addDelivery" class="btn btn-primary">Add Delivery</button>
+        <button type="submit" name="addProduct" class="btn btn-primary">Add Product</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
 </body>
 </html>

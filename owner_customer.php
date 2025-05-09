@@ -325,7 +325,7 @@ $query = "SELECT storeName FROM tblOwner";
       <a href="owner_inventory.php"><i class="fas fa-users"></i> Inventory</a>
       <a href="owner_product.php"><i class="fas fa-tags"></i> Products</a>
       <a href="owner_customer.php" class="fw-bold"><i class="fas fa-chart-line"></i>  Customers</a>
-      <a href="owner_order.php"><i class="fas fa-receipt"></i> Orders</a>
+      <a href="owner_orders.php"><i class="fas fa-receipt"></i> Orders</a>
       <a href="owner_supplier.php"><i class="fas fa-truck"></i> Suppliers</a>
       <a href="owner_settings.php"><i class="fas fa-cog"></i> Settings</a>
       <a href="logout.php"><i class="fas fa-sign-out-alt"></i> Logout</a>

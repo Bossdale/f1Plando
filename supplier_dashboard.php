@@ -75,9 +75,8 @@ $firstName = $_SESSION['firstname'];
       <a href="supplier_dashboard.php">🏠 Dashboard</a>
       <a href="supplier_products.php">📦 My Products</a>
       <a href="supplier_delivery.php">🚚 Deliveries</a>
-      <a href="linked_stores.php">🏬 Linked Stores</a>
-      <a href="supplier_reports.php">📊 Reports</a>
-      <a href="settings.php">⚙️ Settings</a>
+      <a href="supplier_stores.php">🏬 Linked Stores</a>
+      <a href="supplier_settings.php">⚙️ Settings</a>
       <a href="logout.php">🔓 Logout</a>
     </div>
 

@@ -70,6 +70,12 @@ if ($result && $result->num_rows === 1) {
         $_SESSION['firstname'] = $user['firstname'];
         $_SESSION['role'] = $role;
 
+        // Store supplierID in the session if the user is a supplier
+        if ($role === 'supplier' && $supplier_result->num_rows > 0) {
+            $supplier = $supplier_result->fetch_assoc();
+            $_SESSION['supplierID'] = $supplier['supplierID']; // Store supplierID in session
+        }
+
         // Redirect based on the role
         if ($role === 'owner') {
             header("Location: owner_dashboard.php");
