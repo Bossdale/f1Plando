@@ -6,20 +6,36 @@ if (!$connection) {
   die("Database connection failed: " . mysqli_connect_error());
 }
 
-// Fetch suppliers
-$supplierQuery = "SELECT s.supplierID, u.firstname, u.lastname, s.companyName, s.contactPerson, s.lastDeliveryDate
-                  FROM tblSupplier s
-                  JOIN tblUser u ON s.userID = u.userID";
+// Fetch suppliers who have placed at least one order
+$supplierQuery = "
+  SELECT DISTINCT s.supplierID, u.firstname, u.lastname, s.companyName, s.contactPerson, s.lastDeliveryDate
+  FROM tblSupplier s
+  JOIN tblUser u ON s.userID = u.userID
+  JOIN tblproduct p ON s.supplierID = p.supplierID
+  JOIN tblorderitems oi ON p.productID = oi.productID
+  JOIN tblorder o ON oi.orderID = o.orderID
+  WHERE o.orderID IS NOT NULL
+";
 $supplierResult = mysqli_query($connection, $supplierQuery);
 $suppliers = [];
 while ($row = mysqli_fetch_assoc($supplierResult)) {
   $suppliers[] = $row;
 }
 
-// Fetch supplier dropdown list
-$dropdownQuery = "SELECT s.supplierID, u.firstname, u.lastname, s.companyName
-                  FROM tblSupplier s
-                  JOIN tblUser u ON s.userID = u.userID";
+// Fetch supplier dropdown list excluding those already listed
+$dropdownQuery = "
+  SELECT s.supplierID, u.firstname, u.lastname, s.companyName
+  FROM tblSupplier s
+  JOIN tblUser u ON s.userID = u.userID
+  WHERE s.supplierID NOT IN (
+    SELECT DISTINCT s2.supplierID
+    FROM tblSupplier s2
+    JOIN tblproduct p ON s2.supplierID = p.supplierID
+    JOIN tblorderitems oi ON p.productID = oi.productID
+    JOIN tblorder o ON oi.orderID = o.orderID
+    WHERE o.orderID IS NOT NULL
+  )
+";
 $dropdownResult = mysqli_query($connection, $dropdownQuery);
 
 $query = "SELECT storeName FROM tblOwner";
@@ -321,13 +337,10 @@ $storeName= $row['storeName'];
                   <input type="hidden" name="delete_supplier_id" value="<?= $supplier['supplierID'] ?>">
                   <button type="submit" class="btn btn-sm btn-danger" style="background-color:rgb(255, 192, 149); border-color: rgb(255, 192, 149);" onclick="return confirm('Are you sure you want to delete this supplier?')">🗑️</button>
                 </form>
-          
-                <!-- Inside the Actions column -->
                 <form action="owner_supplier_product_view.php" method="POST" style="display:inline;">
                   <input type="hidden" name="supplierID" value="<?php echo $supplier['supplierID']; ?>">
                   <button type="submit" class="btn btn-sm btn-info"  style="background-color: #af3222; border-color: #af3222; color: white;" >📦 View Products</button>
                 </form>
-
               </td>
             </tr>
           <?php endforeach; ?>

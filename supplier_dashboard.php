@@ -7,13 +7,12 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 // Session check
 if (!isset($_SESSION['userID']) || $_SESSION['role'] !== 'supplier') {
-
     header("Location: signin.php");
     exit();
 }
 
 include __DIR__ . '/connect.php';
-include __DIR__ . '/supplier_dashboard_data.php';
+$data = include __DIR__ . '/supplier_dashboard_data.php';
 
 $firstName = $_SESSION['firstname'];
 
@@ -292,19 +291,19 @@ $firstName = $_SESSION['firstname'];
         <div class="col-md-4">
           <div class="header-card text-center">
             <h5>Total Products Supplied</h5>
-            <h3><?php echo $totalSuppliedProducts; ?></h3>
+            <h3><?php echo $data['totalSuppliedProducts']; ?></h3>
           </div>
         </div>
         <div class="col-md-4">
           <div class="header-card text-center">
             <h5>Total Stores Served</h5>
-            <h3><?php echo $totalStores; ?></h3>
+            <h3><?php echo $data['totalStores']; ?></h3>
           </div>
         </div>
         <div class="col-md-4">
           <div class="header-card text-center">
             <h5>Last Delivery</h5>
-            <h3><?php echo $lastDeliveryDate; ?></h3>
+            <h3><?php echo $data['lastDeliveryDate']; ?></h3>
           </div>
         </div>
       </div>
@@ -318,7 +317,7 @@ $firstName = $_SESSION['firstname'];
               <tr><th>Date</th><th>Store</th><th>Items</th></tr>
             </thead>
             <tbody>
-              <?php foreach ($recentDeliveries as $delivery): ?>
+              <?php foreach ($data['recentDeliveries'] as $delivery): ?>
               <tr>
                 <td><?php echo htmlspecialchars($delivery['delivery_date']); ?></td>
                 <td><?php echo htmlspecialchars($delivery['store_name']); ?></td>
@@ -335,7 +334,7 @@ $firstName = $_SESSION['firstname'];
               <tr><th>Product</th><th>Quantity</th></tr>
             </thead>
             <tbody>
-              <?php foreach ($topDeliveredProducts as $product): ?>
+              <?php foreach ($data['topDeliveredProducts'] as $product): ?>
               <tr>
                 <td><?php echo htmlspecialchars($product['name']); ?></td>
                 <td><?php echo htmlspecialchars($product['quantity']); ?></td>
@@ -362,8 +361,8 @@ $firstName = $_SESSION['firstname'];
 </div>
 
 <script>
-  const deliveryData = <?php echo json_encode($deliveryChartData); ?>;
-  const storeData = <?php echo json_encode($topStoresData); ?>;
+  const deliveryData = <?php echo json_encode($data['deliveryChartData']); ?>;
+  const storeData = <?php echo json_encode($data['topStoresData']); ?>;
 
   new Chart(document.getElementById('deliveryChart'), {
     type: 'line',

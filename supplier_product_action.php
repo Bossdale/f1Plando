@@ -10,26 +10,43 @@ if (!$connection) {
 
 // Add product
 if (isset($_POST['addProduct'])) {
-    $supplierID = $_SESSION['userID'];
+    $userID = $_SESSION['userID'];
     $productName = $_POST['productName'];
     $category = $_POST['category'];
     $costPrice = $_POST['costPrice'];
     $sellingPrice = $_POST['sellingPrice'];
     $description = $_POST['description'];
 
-    $insertQuery = "INSERT INTO tblproduct (supplierID, productName, category, costPrice, sellingPrice, description, isActive)
-                    VALUES (?, ?, ?, ?, ?, ?, 1)";
-    $stmt = mysqli_prepare($connection, $insertQuery);
-    if ($stmt) {
-        mysqli_stmt_bind_param($stmt, "issdds", $supplierID, $productName, $category, $costPrice, $sellingPrice, $description);
-        if (mysqli_stmt_execute($stmt)) {
-            header("Location: supplier_products.php?added=1");
-            exit();
+    // Get the supplierID using the logged-in userID
+    $supplierQuery = "SELECT supplierID FROM tblsupplier WHERE userID = ?";
+    $stmtSupplier = mysqli_prepare($connection, $supplierQuery);
+    if ($stmtSupplier) {
+        mysqli_stmt_bind_param($stmtSupplier, "i", $userID);
+        mysqli_stmt_execute($stmtSupplier);
+        mysqli_stmt_bind_result($stmtSupplier, $supplierID);
+        if (mysqli_stmt_fetch($stmtSupplier)) {
+            mysqli_stmt_close($stmtSupplier);
+
+            // Now insert the product using the correct supplierID
+            $insertQuery = "INSERT INTO tblproduct (supplierID, productName, category, costPrice, sellingPrice, description, isActive)
+                            VALUES (?, ?, ?, ?, ?, ?, 1)";
+            $stmt = mysqli_prepare($connection, $insertQuery);
+            if ($stmt) {
+                mysqli_stmt_bind_param($stmt, "issdds", $supplierID, $productName, $category, $costPrice, $sellingPrice, $description);
+                if (mysqli_stmt_execute($stmt)) {
+                    header("Location: supplier_products.php?added=1");
+                    exit();
+                } else {
+                    echo "Error executing insert query: " . mysqli_stmt_error($stmt);
+                }
+            } else {
+                echo "Error preparing insert statement: " . mysqli_error($connection);
+            }
         } else {
-            echo "Error executing insert query: " . mysqli_stmt_error($stmt);
+            echo "Supplier not found for this user.";
         }
     } else {
-        echo "Error preparing insert statement: " . mysqli_error($connection);
+        echo "Error preparing supplier lookup: " . mysqli_error($connection);
     }
 }
 

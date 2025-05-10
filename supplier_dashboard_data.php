@@ -6,7 +6,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-
 include __DIR__ . '/connect.php';
 
 // Session validation
@@ -53,22 +52,23 @@ if ($result) {
 }
 
 // 3. Last Delivery Date
-$query = " SELECT lastDeliveryDate as delivery
-           FROM tblSupplier
-           WHERE supplierID = $supplierID";
+$query = "
+    SELECT MAX(o.orderDate) AS lastDelivery
+    FROM tblOrder o
+    JOIN tblOrderItems oi ON o.orderID = oi.orderID
+    JOIN tblProduct p ON oi.productID = p.productID
+    WHERE p.supplierID = ?
+";
+$stmt = $connection->prepare($query);
+$stmt->bind_param("i", $supplierID);
+$stmt->execute();
 
-$result = mysqli_query($connection, $query);
-if ($result) {
-    $row = mysqli_fetch_assoc($result);
-    $lastDeliveryDate = $row['delivery'] ?? 'N/A';
-}
+$lastDeliveryDate = $stmt->get_result()->fetch_assoc()['lastDelivery'] ?? 'N/A';
 
 // 4. Recent Deliveries
 $recentDeliveries = [];
 $query = "
-
     SELECT o.orderDate AS delivery_date, ow.storeName AS store_name, COUNT(oi.orderItemID) AS items
-
     FROM tblOrder o
     JOIN tblOrderItems oi ON o.orderID = oi.orderID
     JOIN tblProduct p ON oi.productID = p.productID
@@ -85,11 +85,9 @@ $stmt->execute();
 $recentDeliveries = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
 // 5. Most Delivered Products
-
 $topDeliveredProducts = [];
 $query = "
     SELECT p.productName AS name, SUM(oi.quantity) AS quantity
-
     FROM tblOrderItems oi
     JOIN tblProduct p ON oi.productID = p.productID
     JOIN tblOrder o ON oi.orderID = o.orderID
@@ -103,7 +101,6 @@ $paramTypes = "i";
 $params = [$supplierID];
 if ($fromDate && $toDate) {
     $paramTypes .= "ss";
-
     $params[] = $fromDate;
     $params[] = $toDate;
 } elseif ($fromDate || $toDate) {
@@ -149,9 +146,7 @@ $query = "
     JOIN tblProduct p ON oi.productID = p.productID
     JOIN tblInventory i ON p.productID = i.productID
     JOIN tblOwner ow ON i.ownerID = ow.ownerID
-
     WHERE p.supplierID = ?" . getDateCondition($fromDate, $toDate, "o.orderDate") . "
-
     GROUP BY ow.ownerID
     ORDER BY total DESC
     LIMIT 5
@@ -168,9 +163,13 @@ while ($row = $result->fetch_assoc()) {
     $topStoresData['values'][] = (int)$row['total'];
 }
 
-$query = "SELECT companyName FROM tblSupplier";
-$result = mysqli_query($connection, $query);
-if ($result) {
-    $row = mysqli_fetch_assoc($result);
-    $companyName= $row['companyName'];
-}
+return [
+    'totalSuppliedProducts' => $totalSuppliedProducts,
+    'totalStores' => $totalStores,
+    'lastDeliveryDate' => $lastDeliveryDate,
+    'recentDeliveries' => $recentDeliveries,
+    'topDeliveredProducts' => $topDeliveredProducts,
+    'deliveryChartData' => $deliveryChartData,
+    'topStoresData' => $topStoresData
+];
+?>

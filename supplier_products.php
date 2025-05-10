@@ -6,17 +6,36 @@ if (!$connection) {
   die("Database connection failed: " . mysqli_connect_error());
 }
 
-$supplierID = $_SESSION['userID'];
+// Get the logged-in user's userID
+$userID = $_SESSION['userID'];
 
-// Fetch products
+// Fetch the corresponding supplierID
+$supplierID = null;
+$supplierQuery = "SELECT supplierID FROM tblsupplier WHERE userID = ?";
+$stmt = mysqli_prepare($connection, $supplierQuery);
+mysqli_stmt_bind_param($stmt, "i", $userID);
+mysqli_stmt_execute($stmt);
+mysqli_stmt_bind_result($stmt, $supplierID);
+mysqli_stmt_fetch($stmt);
+mysqli_stmt_close($stmt);
+
+// If supplierID is still null, exit
+if (!$supplierID) {
+  die("Supplier not found.");
+}
+
+// Fetch products for this supplier
 $productQuery = "SELECT p.productID, p.productName, p.category, p.costPrice, p.sellingPrice, p.isActive, p.description, s.companyName, s.supplierID 
                  FROM tblProduct p 
                  JOIN tblSupplier s ON p.supplierID = s.supplierID
-                 WHERE s.supplierID = '$supplierID'";
-$productResult = mysqli_query($connection, $productQuery);
+                 WHERE s.supplierID = ?";
+$stmt = mysqli_prepare($connection, $productQuery);
+mysqli_stmt_bind_param($stmt, "i", $supplierID);
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 
 $products = [];
-while ($row = mysqli_fetch_assoc($productResult)) {
+while ($row = mysqli_fetch_assoc($result)) {
   $products[] = $row;
 }
 ?>
@@ -64,10 +83,8 @@ while ($row = mysqli_fetch_assoc($productResult)) {
       <img src="logo.png" class="logo mb-3" alt="Logo">
       <a href="supplier_dashboard.php">🏠 Dashboard</a>
       <a href="supplier_products.php">📦 My Products</a>
-      <a href="deliveries.php">🚚 Deliveries</a>
-      <a href="linked_stores.php">🏬 Linked Stores</a>
-      <a href="supplier_reports.php">📊 Reports</a>
-      <a href="settings.php">⚙️ Settings</a>
+      <a href="supplier_stores.php">🏬 Linked Stores</a>
+      <a href="supplier_settings.php">⚙️ Settings</a>
       <a href="logout.php">🔓 Logout</a>
     </div>
 
@@ -93,48 +110,43 @@ while ($row = mysqli_fetch_assoc($productResult)) {
 
       <!-- Product Table -->
       <table class="table table-bordered table-striped">
-      <thead class="table-light">
-  <tr>
-    <th>Name</th>
-    <th>Category</th>
-    <th>Cost</th>
-    <th>Price</th>
-    <th>Status</th>
-    <th>Action</th> <!-- Add this column -->
-  </tr>
-</thead>
-<tbody>
-  <?php foreach ($products as $product): ?>
-    <tr>
-      <td><?= htmlspecialchars($product['productName']) ?></td>
-      <td><?= htmlspecialchars($product['category']) ?></td>
-      <td>₱<?= number_format($product['costPrice'], 2) ?></td>
-      <td>₱<?= number_format($product['sellingPrice'], 2) ?></td>
-      <td><?= $product['isActive'] ? 'Active' : 'Inactive' ?></td>
-<!-- Inside the Product Table (in the action column) -->
-<td>
-    <!-- Edit Button -->
-    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editProductModal"
-            data-id="<?= $product['productID'] ?>"
-            data-name="<?= htmlspecialchars($product['productName']) ?>"
-            data-category="<?= htmlspecialchars($product['category']) ?>"
-            data-cost="<?= $product['costPrice'] ?>"
-            data-price="<?= $product['sellingPrice'] ?>"
-            data-description="<?= htmlspecialchars($product['description']) ?>">
-        ✏️ Edit
-    </button>
-    <!-- Delete Button -->
-    <a href="supplier_product_action.php?deleteProduct=1&productID=<?= $product['productID'] ?>" 
-       class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this product?');">
-        🗑️ Delete
-    </a>
-</td>
-
-    </tr>
-  <?php endforeach; ?>
-</tbody>
-</table>
-
+        <thead class="table-light">
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Cost</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+        <?php foreach ($products as $product): ?>
+          <tr>
+            <td><?= htmlspecialchars($product['productName']) ?></td>
+            <td><?= htmlspecialchars($product['category']) ?></td>
+            <td>₱<?= number_format($product['costPrice'], 2) ?></td>
+            <td>₱<?= number_format($product['sellingPrice'], 2) ?></td>
+            <td><?= $product['isActive'] ? 'Active' : 'Inactive' ?></td>
+            <td>
+              <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editProductModal"
+                      data-id="<?= $product['productID'] ?>"
+                      data-name="<?= htmlspecialchars($product['productName']) ?>"
+                      data-category="<?= htmlspecialchars($product['category']) ?>"
+                      data-cost="<?= $product['costPrice'] ?>"
+                      data-price="<?= $product['sellingPrice'] ?>"
+                      data-description="<?= htmlspecialchars($product['description']) ?>">
+                  ✏️ Edit
+              </button>
+              <a href="supplier_product_action.php?deleteProduct=1&productID=<?= $product['productID'] ?>" 
+                 class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this product?');">
+                  🗑️ Delete
+              </a>
+            </td>
+          </tr>
+        <?php endforeach; ?>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -176,7 +188,7 @@ while ($row = mysqli_fetch_assoc($productResult)) {
   </div>
 </div>
 
-<!-- Inside your Edit Product Modal -->
+<!-- Edit Product Modal -->
 <div class="modal fade" id="editProductModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
     <form method="POST" action="supplier_product_action.php" class="modal-content">
@@ -185,8 +197,7 @@ while ($row = mysqli_fetch_assoc($productResult)) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <input type="hidden" name="productID" id="editProductID"> <!-- Hidden field for product ID -->
-        
+        <input type="hidden" name="productID" id="editProductID">
         <div class="mb-3">
           <label for="editProductName" class="form-label">Product Name</label>
           <input type="text" name="productName" id="editProductName" class="form-control" required>
@@ -215,28 +226,18 @@ while ($row = mysqli_fetch_assoc($productResult)) {
   </div>
 </div>
 
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- JavaScript to populate the edit modal with the current product's data -->
 <script>
   const editProductModal = document.getElementById('editProductModal');
   editProductModal.addEventListener('show.bs.modal', function (event) {
-    const button = event.relatedTarget; // Button that triggered the modal
-    const productID = button.getAttribute('data-id');
-    const productName = button.getAttribute('data-name');
-    const category = button.getAttribute('data-category');
-    const costPrice = button.getAttribute('data-cost');
-    const sellingPrice = button.getAttribute('data-price');
-    const description = button.getAttribute('data-description');
-
-    // Populate the fields in the modal with the product data
-    document.getElementById('editProductID').value = productID;
-    document.getElementById('editProductName').value = productName;
-    document.getElementById('editCategory').value = category;
-    document.getElementById('editCostPrice').value = costPrice;
-    document.getElementById('editSellingPrice').value = sellingPrice;
-    document.getElementById('editDescription').value = description;
+    const button = event.relatedTarget;
+    document.getElementById('editProductID').value = button.getAttribute('data-id');
+    document.getElementById('editProductName').value = button.getAttribute('data-name');
+    document.getElementById('editCategory').value = button.getAttribute('data-category');
+    document.getElementById('editCostPrice').value = button.getAttribute('data-cost');
+    document.getElementById('editSellingPrice').value = button.getAttribute('data-price');
+    document.getElementById('editDescription').value = button.getAttribute('data-description');
   });
 </script>
 
