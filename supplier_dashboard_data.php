@@ -40,32 +40,28 @@ $stmt->bind_param("i", $supplierID);
 $stmt->execute();
 $totalSuppliedProducts = $stmt->get_result()->fetch_assoc()['total'];
 
-$query = "
-    SELECT COUNT(DISTINCT i.ownerID) AS totalStores
+// 2. Total Store Served
+$query = " SELECT COUNT(DISTINCT i.ownerID) AS totalStores
     FROM tblInventory i
     JOIN tblProduct p ON i.productID = p.productID
-    WHERE p.supplierID = ?
-";
+    WHERE p.supplierID = $supplierID";
 
-$stmt = $connection->prepare($query);
-$stmt->bind_param("i", $supplierID);
-$stmt->execute();
-$totalStores = $stmt->get_result()->fetch_assoc()['totalStores'];
+$result = mysqli_query($connection, $query);
+if ($result) {
+    $row = mysqli_fetch_assoc($result);
+    $totalStores = $row['totalStores'];
+}
 
 // 3. Last Delivery Date
-$query = "
-    SELECT MAX(o.orderDate) AS lastDelivery
-    FROM tblOrder o
-    JOIN tblOrderItems oi ON o.orderID = oi.orderID
-    JOIN tblProduct p ON oi.productID = p.productID
-    WHERE p.supplierID = ?
-";
-$stmt = $connection->prepare($query);
-$stmt->bind_param("i", $supplierID);
-$stmt->execute();
+$query = " SELECT lastDeliveryDate as delivery
+           FROM tblSupplier
+           WHERE supplierID = $supplierID";
 
-$lastDeliveryDate = $stmt->get_result()->fetch_assoc()['lastDelivery'] ?? 'N/A';
-
+$result = mysqli_query($connection, $query);
+if ($result) {
+    $row = mysqli_fetch_assoc($result);
+    $lastDeliveryDate = $row['delivery'] ?? 'N/A';
+}
 
 // 4. Recent Deliveries
 $recentDeliveries = [];
@@ -170,4 +166,11 @@ $topStoresData = ['labels' => [], 'values' => []];
 while ($row = $result->fetch_assoc()) {
     $topStoresData['labels'][] = $row['storeName'];
     $topStoresData['values'][] = (int)$row['total'];
+}
+
+$query = "SELECT companyName FROM tblSupplier";
+$result = mysqli_query($connection, $query);
+if ($result) {
+    $row = mysqli_fetch_assoc($result);
+    $companyName= $row['companyName'];
 }
